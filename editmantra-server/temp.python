@@ -1,1 +1,18 @@
-print("Hello, mWorld!")
+def is_binary(N):
+    # Check if the number is greater than 1
+    if N <= 1:
+        return False
+    
+    # Convert the number to a string to check each digit
+    str_N = str(N)
+    
+    # Check if all characters are '0' or '1'
+    for digit in str_N:
+        if digit not in ['0', '1']:
+            return False  # If any digit is not '0' or '1', it's not a binary number
+    
+    return True  # All digits are '0' or '1', and the number is greater than 1
+
+# Test cases
+print(is_binary(1010))  # Output: True
+# print(is_binary(1234))  # Output: False

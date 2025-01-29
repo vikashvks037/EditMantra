@@ -40,7 +40,7 @@ function Home() {
             <p className="text-gray-700 text-center font-semibold">Discover books to boost your technical skills and knowledge.</p>
           </div>
           {/* Real-Time Collaboration Card */}
-          <div onClick={() => handleRedirect('/RealTimeCollaboration')} className="bg-gradient-to-r from-cyan-400 to-blue-300  p-6 rounded-lg shadow-xl hover:scale-105 transform transition-transform cursor-pointer hover:shadow-2xl flex flex-col items-center">
+          <div onClick={() => handleRedirect('/RealTimeCollaboration')} className="bg-gradient-to-r from-cyan-300 to-blue-400  p-6 rounded-lg shadow-xl hover:scale-105 transform transition-transform cursor-pointer hover:shadow-2xl flex flex-col items-center">
             <div className="mb-6"><img src="/Home-1.jpg" alt="Real-Time Collaboration" className="w-28 h-28 rounded-full border-4 border-purple-400"/>
             </div>
             <h3 className="text-2xl font-semibold text-white mb-3 text-center">Real-Time Collaboration</h3>

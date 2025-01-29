@@ -140,7 +140,83 @@ mongoose.connect('mongodb://127.0.0.1:27017/EditMantra')
   .then(() => console.log('Connected to MongoDB'))
   .catch((err) => console.error('Error connecting to MongoDB:', err));
 
+// User logging
+app.post('/user-login', async (req, res) => {
+  const { email, password } = req.body; // User login does not require key
+
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required' });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    res.status(200).json({
+      message: 'User login successful',
+      user: {
+        name: user.name,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error('Error during user login:', error);
+    res.status(500).json({ message: 'Server error during user login' });
+  }
+});
+
+
+//Admin logging
+app.post('/admin-login', async (req, res) => {
+  const { email, password, key } = req.body; // Admin login requires key
+
+  if (!email || !password || !key) {
+    return res.status(400).json({ message: 'Email, password, and admin key are required' });
+  }
+
+  try {
+    const user = await Admin.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ message: 'Admin not found' });
+    }
+
+    if (user.key !== key) {
+      return res.status(403).json({ message: 'Invalid admin key' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    res.status(200).json({
+      message: 'Admin login successful',
+      user: {
+        name: user.name,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error('Error during admin login:', error);
+    res.status(500).json({ message: 'Server error during admin login' });
+  }
+});
+
   
+
 // Route to /signup/user
 app.post('/signup/user', async (req, res) => {
   const { name, email, username, password } = req.body;
@@ -187,49 +263,6 @@ app.post('/signup/user', async (req, res) => {
 });
 
 
-// Log In Route (For both Users and Admins)
-app.post('/login', async (req, res) => {
-  const { email, password, role } = req.body;
-
-  if (!email || !password || !role) {
-    return res.status(400).json({ message: 'Email, password, and role are required' });
-  }
-
-  try {
-    let user;
-
-    if (role === 'admin') {
-      user = await Admin.findOne({ email });
-    } else if (role === 'user') {
-      user = await User.findOne({ email });
-    } else {
-      return res.status(400).json({ message: 'Invalid role provided' });
-    }
-
-    if (!user) {
-      return res.status(401).json({ message: `${role.charAt(0).toUpperCase() + role.slice(1)} not found` });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-
-    // No JWT, just respond with success message and user data
-    res.status(200).json({
-      message: `${role.charAt(0).toUpperCase() + role.slice(1)} login successful`,
-      user: {
-        name: user.name,
-        email: user.email,
-        username: user.username,
-        role: user.role,
-      }
-    });
-  } catch (error) {
-    console.error('Error during login:', error);
-    res.status(500).json({ message: 'Server error during login' });
-  }
-});
 
 // Admin Sign Up Route
 app.post('/signup/admin', async (req, res) => {
