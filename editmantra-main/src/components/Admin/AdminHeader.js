@@ -52,7 +52,7 @@ function AdminHeader() {
       </nav>
       <button
         onClick={handleLogin} // Call the handleLogin function on click
-        className="bg-gradient-to-r from-green-500 to-green-500 text-white font-bold py-2 px-8 rounded-full shadow-md hover:from-green-300 hover:to-green-600 transition duration-300 ease-in-out transform hover:scale-105"
+        className="bg-gradient-to-r from-blue-500 to-blue-500 text-white font-bold py-2 px-8 rounded-md shadow-md hover:from-blue-300 hover:to-blue-600 transition duration-300 ease-in-out transform hover:scale-105"
       >
         LogIn
       </button>

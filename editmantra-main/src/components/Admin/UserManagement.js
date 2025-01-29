@@ -85,7 +85,7 @@ function UserManagement() {
       <AdminHeader />
       <main className="flex-grow container mx-auto p-6">
         <section>
-          <h2 className="text-3xl font-bold text-center mb-4 text-blue-800">User Management</h2>
+          <h2 className="text-3xl font-bold text-center mb-4 text-blue-800">User Details</h2>
 
           {errorMessage && (
             <div className="text-red-600 text-center bg-red-100 border border-red-400 p-4 rounded mb-4">

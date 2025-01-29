@@ -47,7 +47,7 @@ function Dashboard() {
               />
             </div>
             <h3 className="text-2xl font-semibold text-white mb-3 text-center leading-tight">Real-Time Collaboration</h3>
-            <p className="text-gray-100 text-center font-medium text-lg">Work on coding projects together with your friends in real time.</p>
+            <p className="text-gray-600 text-center font-medium text-1x1">Work on coding projects together with your friends in real time.</p>
           </div>
 
           {/* User Details Card */}
@@ -62,7 +62,7 @@ function Dashboard() {
               />
             </div>
             <h3 className="text-2xl font-semibold text-white mb-3 text-center leading-tight">User Details</h3>
-            <p className="text-gray-100 text-center font-medium text-lg">Information about user activity and stats.</p>
+            <p className="text-gray-600 text-center font-medium text-1x1">Information of user activity and Update or Delete user.</p>
           </div>
 
           {/* Add Question Card */}
@@ -77,7 +77,7 @@ function Dashboard() {
               />
             </div>
             <h3 className="text-2xl font-semibold text-white mb-3 text-center leading-tight">Add Question</h3>
-            <p className="text-gray-100 text-center font-medium text-lg">Create interactive coding problems that push your skills to the next level.</p>
+            <p className="text-gray-600 text-center font-medium text-1x1">Create interactive coding problems that push your skills to the next level.</p>
           </div>
         </div>
       </main>
