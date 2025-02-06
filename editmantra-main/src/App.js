@@ -16,13 +16,14 @@ import About from './components/About.jsx';
 import BookList from "./components/BookList/BookList.jsx";
 import BookDetails from "./components/BookDetails/BookDetails";
 import Dashboard from "./components/Admin/Dashboard.jsx";
-import EditGamification from "./components/Admin/EditGamification.js";
-import UserManagement from "./components/Admin/UserManagement.js";
-import AdminProfile from './components/Admin/AdminProfile.js';
-import AdminAbout from './components/Admin/AdminAbout.js';
-import Collaboration from './components/Collaboration.js';
-import AdminRealTimeCollaboration from './components/Admin/AdminRealTimeCollaboration.js';
-import AdminEditorPage from './components/Admin/AdminEditorPage.js';
+import EditGamification from "./components/Admin/EditGamification.jsx";
+import UserManagement from "./components/Admin/UserManagement.jsx";
+import AdminProfile from './components/Admin/AdminProfile.jsx';
+import AdminAbout from './components/Admin/AdminAbout.jsx';
+import Collaboration from './components/Collaboration.jsx';
+import AdminRealTimeCollaboration from './components/Admin/AdminRealTimeCollaboration.jsx';
+import AdminEditorPage from './components/Admin/AdminEditorPage.jsx';
+import Game from "./components/Game.jsx";
 
 function App() {
     return (
@@ -33,12 +34,13 @@ function App() {
             <BrowserRouter>
                 <Routes>
                     {/* Define Route paths */}
-                    <Route path="/" element={<Home />} />
-                    <Route path="/LogIn" element={<LogIn />} />
+                    <Route path="/" element={<LogIn />} />
+                    <Route path="/Home" element={<Home />} />
                     <Route path="/SignUp" element={<SignUp />} />
-                    <Route path="/Profile" element={<Profile />} />
-                    <Route path="/EditProfile" element={<EditProfile />} />
-                    <Route path="/About" element={<About />} />
+                    <Route path="/Home/Profile" element={<Profile />} />
+                    <Route path="/Home/EditProfile" element={<EditProfile />} />
+                    <Route path="/Home/About" element={<About />} />
+                    <Route path="/game" element={<Game />} />
                     
                     {/* Dashboard and Admin routes */}
                     <Route path="/Dashboard" element={<Dashboard />} />

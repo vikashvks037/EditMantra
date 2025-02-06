@@ -1,21 +1,15 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 function AdminHeader() {
   const location = useLocation(); // Get the current route
-  const navigate = useNavigate(); // Hook to programmatically navigate to routes
 
   // Define isActive function to check if the path is active
   const isActive = (path) => location.pathname.split('?')[0] === path;
 
-  // Function to handle login button click
-  const handleLogin = () => {
-    navigate('/login'); // Redirect to the login page
-  };
-
   return (
     <header className="w-full p-4 bg-cyan-50 shadow-md flex justify-between items-center">
       <Link
-        to="/Dashboard"
+        to="/"
         className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-cyan-600 text-transparent bg-clip-text hover:from-cyan-500 hover:to-purple-500 transition duration-300 ease-in-out"
       >
         EditMantra
@@ -50,12 +44,7 @@ function AdminHeader() {
           About Us
         </Link>
       </nav>
-      <button
-        onClick={handleLogin} // Call the handleLogin function on click
-        className="bg-gradient-to-r from-blue-500 to-blue-500 text-white font-bold py-2 px-8 rounded-md shadow-md hover:from-blue-300 hover:to-blue-600 transition duration-300 ease-in-out transform hover:scale-105"
-      >
-        LogIn
-      </button>
+      
     </header>
   );
 }

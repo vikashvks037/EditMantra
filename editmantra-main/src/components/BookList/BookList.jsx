@@ -27,9 +27,6 @@ const BookList = () => {
         <Header />
       </div>
       <div className="container mx-auto mt-4 max-w-screen-xl">
-        <div className="section-title mb-2">
-          <h2 className="text-4xl text-center font-bold decoration-4 text-cyan-600">{resultTitle}</h2>
-        </div>
         <div className="booklist-content grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {
             booksWithCovers.slice(0, 30).map((item, index) => {

@@ -6,78 +6,52 @@ import AdminHeader from './AdminHeader';
 function Dashboard() {
   const navigate = useNavigate();
 
-  // Check if the user is logged in (i.e., if there's a token in localStorage)
   const checkLoginStatus = () => {
     const token = localStorage.getItem('token');
     if (!token) {
-      navigate('/login'); // Redirect to login page if not logged in
-      return false; // User is not logged in
+      navigate('/login');
+      return false;
     }
-    return true; // User is logged in
+    return true;
   };
 
-  // Redirect to the specified path if the user is logged in, otherwise go to login page
   const handleRedirect = (path) => {
-    if (!checkLoginStatus()) {
-      return; // If not logged in, stop execution here
-    }
-    navigate(path); // Redirect to the desired path
+    if (!checkLoginStatus()) return;
+    navigate(path);
   };
 
   return (
     <div className="bg-gradient-to-r from-indigo-100 via-blue-200 to-cyan-300 min-h-screen flex flex-col">
       <AdminHeader />
       <main className="flex-grow container mx-auto p-6">
-        {/* Main Heading */}
-        <h1 className="text-4xl sm:text-5xl lg:text-5xl font-extrabold text-center mt-8 mb-12 tracking-tight bg-blue-500 text-transparent bg-clip-text">
-          Admin
-        </h1>
-
-        {/* Cards Section */}
+        <h1 className="text-5xl font-extrabold text-center mt-8 mb-12 text-blue-600">Admin Dashboard</h1>
+        
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12">
-          {/* Real-Time Collaboration Card */}
+          {/** Real-Time Collaboration Card */}
           <div
             onClick={() => handleRedirect('/Dashboard/AdminRealTimeCollaboration')}
-            className="bg-gradient-to-r from-indigo-300 to-purple-400 p-6 rounded-lg shadow-xl hover:scale-105 transform transition-transform cursor-pointer hover:shadow-2xl flex flex-col items-center">
-            <div className="mb-6">
-              <img
-                src="/Home-1.jpg"
-                alt="Real-Time Collaboration"
-                className="w-28 h-28 rounded-full border-4 border-purple-500"
-              />
-            </div>
-            <h3 className="text-2xl font-semibold text-white mb-3 text-center leading-tight">Real-Time Collaboration</h3>
-            <p className="text-gray-600 text-center font-medium text-1x1">Work on coding projects together with your friends in real time.</p>
+            className="bg-white p-6 rounded-2xl shadow-lg hover:scale-105 transform transition-transform cursor-pointer hover:shadow-2xl flex flex-col items-center border border-blue-300">
+            <img src="/Home-1.jpg" alt="Real-Time Collaboration" className="w-28 h-28 rounded-full border-4 border-purple-500 mb-4" />
+            <h3 className="text-2xl font-semibold text-blue-800 mb-2 text-center">Real-Time Collaboration</h3>
+            <p className="text-gray-700 text-center px-4">Join coding rooms and collaborate with peers live.</p>
           </div>
 
-          {/* User Details Card */}
+          {/** User Details Card */}
           <div
             onClick={() => handleRedirect('/Dashboard/UserManagement')}
-            className="bg-gradient-to-r from-cyan-400 to-blue-400  p-6 rounded-lg shadow-xl hover:scale-105 transform transition-transform cursor-pointer hover:shadow-2xl flex flex-col items-center">
-            <div className="mb-6">
-              <img
-                src="/Learning.jpg"
-                alt="Learning Resources"
-                className="w-28 h-28 rounded-full border-4 border-cyan-600"
-              />
-            </div>
-            <h3 className="text-2xl font-semibold text-white mb-3 text-center leading-tight">User Details</h3>
-            <p className="text-gray-600 text-center font-medium text-1x1">Information of user activity and Update or Delete user.</p>
+            className="bg-white p-6 rounded-2xl shadow-lg hover:scale-105 transform transition-transform cursor-pointer hover:shadow-2xl flex flex-col items-center border border-blue-300">
+            <img src="/Learning.jpg" alt="User Details" className="w-28 h-28 rounded-full border-4 border-cyan-600 mb-4" />
+            <h3 className="text-2xl font-semibold text-blue-800 mb-2 text-center">User Details</h3>
+            <p className="text-gray-700 text-center px-4">Manage user profiles, update details, and track activity.</p>
           </div>
 
-          {/* Add Question Card */}
+          {/** Add Question Card */}
           <div
             onClick={() => handleRedirect('/Dashboard/EditGamification')}
-            className="bg-gradient-to-r from-teal-400 to-green-400 p-6 rounded-lg shadow-xl hover:scale-105 transform transition-transform cursor-pointer hover:shadow-2xl flex flex-col items-center">
-            <div className="mb-6">
-              <img
-                src="/AddQuestions.jpg"
-                alt="EditGamification"
-                className="w-28 h-28 rounded-full border-4 border-green-500"
-              />
-            </div>
-            <h3 className="text-2xl font-semibold text-white mb-3 text-center leading-tight">Add Question</h3>
-            <p className="text-gray-600 text-center font-medium text-1x1">Create interactive coding problems that push your skills to the next level.</p>
+            className="bg-white p-6 rounded-2xl shadow-lg hover:scale-105 transform transition-transform cursor-pointer hover:shadow-2xl flex flex-col items-center border border-blue-300">
+            <img src="/AddQuestions.jpg" alt="Add Question" className="w-28 h-28 rounded-full border-4 border-green-500 mb-4" />
+            <h3 className="text-2xl font-semibold text-blue-800 mb-2 text-center">Add Question</h3>
+            <p className="text-gray-700 text-center px-4">Create and manage coding challenges for users.</p>
           </div>
         </div>
       </main>

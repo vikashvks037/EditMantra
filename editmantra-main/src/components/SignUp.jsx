@@ -31,7 +31,7 @@ const Signup = () => {
       
       setMessage(response.data.message); // Display success message
       setIsLoading(false);
-      navigate('/LogIn'); // Navigate to Login page after successful signup
+      navigate('/'); // Navigate to Login page after successful signup
     } catch (error) {
       setMessage('Error creating user: ' + (error.response?.data?.message || 'Server error'));
       setIsLoading(false);
@@ -109,7 +109,7 @@ const Signup = () => {
           </form>
           <div className="mt-4 text-center font-medium text-xl">
             Already have an account ? &nbsp;
-            <a href="/LogIn" className="text-orange-600 font-bold underline hover:text-cyan-500 hover:scale-105 transform transition-transform cursor-pointer hover:shadow-2xl flex flex-col items-center">Click here</a>
+            <a href="/" className="text-orange-600 font-bold underline hover:text-cyan-500 hover:scale-105 transform transition-transform cursor-pointer hover:shadow-2xl flex flex-col items-center">Click here</a>
           </div>
         </div>
       </div>

@@ -13,6 +13,8 @@ const { exec } = require('child_process');
 const User = require('./models/User'); // Ensure path correctness
 const Admin = require('./models/Admin'); // Ensure path correctness
 const Question = require('./models/Question');
+const MCQQuestion = require('./models/mcqQuestion');
+const Leaderboard = require('./models/leaderboard');
 const fs = require('fs');
 const app = express();
 
@@ -135,7 +137,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// // MongoDB connection
+// MongoDB connection
 // mongoose.connect('mongodb://127.0.0.1:27017/EditMantra')
 //   .then(() => console.log('Connected to MongoDB'))
 //   .catch((err) => console.error('Error connecting to MongoDB:', err));
@@ -266,7 +268,6 @@ app.post('/signup/user', async (req, res) => {
     res.status(500).json({ message: 'Server error during signup.' });
   }
 });
-
 
 
 // Admin Sign Up Route
@@ -528,6 +529,33 @@ app.post('/compile', (req, res) => {
   });
 });
 
+
+// 1. Add Question (Admin Only)
+app.post('/api/admin/add-question', async (req, res) => {
+  const { question, options, correctAnswer } = req.body;
+
+  try {
+    const newQuestion = new MCQQuestion({
+      question,
+      options,
+      correctAnswer,
+    });
+    await newQuestion.save();
+    res.status(201).send({ message: 'Question added successfully' });
+  } catch (err) {
+    res.status(500).send({ message: 'Error adding question', error: err });
+  }
+});
+
+// 2. Get All Questions (User)
+app.get('/api/mcqquestions', async (req, res) => {
+  try {
+    const questions = await MCQQuestion.find();
+    res.status(200).json(questions);
+  } catch (err) {
+    res.status(500).send({ message: 'Error fetching questions', error: err });
+  }
+});
 
 // Start Server
 const PORT = process.env.PORT || 5000;

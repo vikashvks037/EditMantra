@@ -31,8 +31,6 @@ function Questions() {
 
   return (
     <div className="flex flex-col">
-      <h1 className="text-3xl font-bold text-center mb-4">Challenges</h1>
-
       {loading ? (
         <p className="text-center text-gray-500">Loading challenges...</p>
       ) : error ? (

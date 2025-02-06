@@ -1,18 +1,18 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from './Header';
-import Footer from './Footer';
+import AdminHeader from './AdminHeader';
+import Footer from '../Footer';
 
-const About = () => {
+const AdminAbout = () => {
   const navigate = useNavigate();  // Initialize the navigate hook
 
   const handleGetStarted = () => {
-    navigate('/');  // Navigate to the homepage when the button is clicked
+    navigate('/Dashboard');  // Navigate to the '/admin' page
   };
 
   return (
-    <div className='flex flex-col min-h-screen bg-gradient-to-r from-blue-400 via-blue-400 to-cyan-500'>
-      <Header />
+    <div className='flex flex-col min-h-screen bg-gradient-to-r from-blue-400 via-blue-00 to-cyan-500'>
+      <AdminHeader />
       <div className="max-w-5xl mx-auto mt-16 bg-white p-8 rounded-lg shadow-xl my-8">
         <h3 className="text-4xl font-bold text-blue-900 mb-6 text-center tracking-wide">
           Empowering the Next Generation of Innovators
@@ -52,4 +52,4 @@ const About = () => {
   );
 };
 
-export default About;
+export default AdminAbout;
