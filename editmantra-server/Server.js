@@ -7,6 +7,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const validator = require('validator');
+const fs = require('fs');
 const morgan = require('morgan'); // For request logging
 const http = require('http');
 const { exec } = require('child_process');
@@ -14,12 +15,14 @@ const User = require('./models/User'); // Ensure path correctness
 const Admin = require('./models/Admin'); // Ensure path correctness
 const Question = require('./models/Question');
 const MCQQuestion = require('./models/mcqQuestion');
-const Leaderboard = require('./models/leaderboard');
-const fs = require('fs');
+
+
 const app = express();
+
 
 // Create an HTTP server using Express
 const server = http.createServer(app);
+
 
 // Initialize Socket.io with CORS configuration
 const io = socketIo(server, {
@@ -29,6 +32,7 @@ const io = socketIo(server, {
   }
 });
 
+
 // Middleware
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Allow requests from the frontend (adjust this URL if needed)
@@ -36,9 +40,11 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'], // Allow these headers
 }));
 
+
 app.use(bodyParser.json());  // For parsing incoming JSON requests
 app.use(helmet());  // Security middleware to set various HTTP headers
 app.use(morgan('dev'));  // Logs HTTP requests for easier debugging
+
 
 // Rate Limiting: Limiting requests to avoid abuse
 const limiter = rateLimit({
@@ -46,6 +52,7 @@ const limiter = rateLimit({
   max: 100,  // Max 100 requests per window per IP
 });
 app.use(limiter);
+
 
 // Define the ACTIONS object
 const ACTIONS = {
@@ -58,8 +65,10 @@ const ACTIONS = {
   LEAVE: "leave"
 };
 
+
 // A map to track users and their socket IDs
 const userSocketMap = {}; // User to socket ID map
+
 
 function getAllConnectedClients(roomId) {
   return Array.from(io.sockets.adapter.rooms.get(roomId) || []).map(
@@ -136,6 +145,7 @@ io.on('connection', (socket) => {
     console.log('User disconnected:', socket.id);
   });
 });
+
 
 // MongoDB connection
 // mongoose.connect('mongodb://127.0.0.1:27017/EditMantra')
@@ -221,7 +231,6 @@ app.post('/admin-login', async (req, res) => {
     res.status(500).json({ message: 'Server error during admin login' });
   }
 });
-
   
 
 // Route to /signup/user
@@ -320,6 +329,7 @@ app.post('/signup/admin', async (req, res) => {
   }
 });
 
+
 // Route to get all users
 app.get('/api/users', async (req, res) => {
   try {
@@ -330,6 +340,7 @@ app.get('/api/users', async (req, res) => {
     res.status(500).json({ message: 'Failed to load users' });
   }
 });
+
 
 // Route to update user details by ID
 app.put('/api/users/:id', async (req, res) => {
@@ -357,6 +368,7 @@ app.put('/api/users/:id', async (req, res) => {
   }
 });
 
+
 // Route to fetch Admin profile
 app.get('/api/admin/profile', async (req, res) => { // Add the leading `/` in the path
   try {
@@ -370,6 +382,7 @@ app.get('/api/admin/profile', async (req, res) => { // Add the leading `/` in th
     res.status(500).json({ message: 'Error fetching admin info', error: err.message });
   }
 });
+
 
 // Route to fetch user profile
 app.get('/api/user/profile', async (req, res) => {
@@ -386,6 +399,7 @@ app.get('/api/user/profile', async (req, res) => {
     res.status(500).json({ message: 'Error fetching user info', error: err.message });
   }
 });
+
 
 // Route to add a question
 app.post('/api/questions/add', async (req, res) => {
@@ -410,6 +424,7 @@ app.post('/api/questions/add', async (req, res) => {
   }
 });
 
+
 // Route to delete a user by ID
 app.delete('/api/users/:id', async (req, res) => {
   const { id } = req.params;
@@ -425,6 +440,7 @@ app.delete('/api/users/:id', async (req, res) => {
   }
 });
 
+
 // Route to fetch all questions
 app.get('/api/questions', async (req, res) => {
   try {
@@ -437,7 +453,8 @@ app.get('/api/questions', async (req, res) => {
   }
 });
 
-// GET /api/questions/:id - Fetch question by ID
+
+//Fetch question by ID
 app.get('/api/questions/:id', async (req, res) => {
   const questionId = req.params.id;
 
@@ -487,9 +504,6 @@ app.post('/verify-username', async (req, res) => {
   }
 });
 
-
-
-
 app.post('/compile', (req, res) => {
   const { code, lang, input } = req.body;
 
@@ -530,7 +544,7 @@ app.post('/compile', (req, res) => {
 });
 
 
-// 1. Add Question (Admin Only)
+//Add Question (Admin Only)
 app.post('/api/admin/add-question', async (req, res) => {
   const { question, options, correctAnswer } = req.body;
 
@@ -547,7 +561,8 @@ app.post('/api/admin/add-question', async (req, res) => {
   }
 });
 
-// 2. Get All Questions (User)
+
+// Get All Questions (User)
 app.get('/api/mcqquestions', async (req, res) => {
   try {
     const questions = await MCQQuestion.find();

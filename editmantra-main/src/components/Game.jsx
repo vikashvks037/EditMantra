@@ -12,7 +12,7 @@ const Gamification = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700">
+    <div className="flex flex-col min-h-screen bg-gray-700">
       <Header />
       <div className="flex-grow flex flex-col justify-center items-center text-white text-center p-6">
         

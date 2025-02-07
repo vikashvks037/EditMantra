@@ -45,7 +45,7 @@ function Home() {
           <div 
             onClick={() => handleRedirect('/Gamification')} 
             className="bg-white p-6 rounded-2xl shadow-lg hover:scale-105 transition-transform cursor-pointer hover:shadow-xl flex flex-col items-center text-center">
-            <img src="/Gamification.jpg" alt="Gamification" className="w-24 h-24 rounded-full border-4 border-green-500 mb-4" />
+            <img src="/Gamification.jpg" alt="Coding Questions" className="w-24 h-24 rounded-full border-4 border-blue-400 mb-4" />
             <h3 className="text-2xl font-semibold text-gray-800">Coding Questions</h3>
             <p className="text-gray-600 mt-2">Solve problems and Improve Skills</p>
           </div>
@@ -54,7 +54,7 @@ function Home() {
           <div 
             onClick={() => handleRedirect('/game')} 
             className="bg-white p-6 rounded-2xl shadow-lg hover:scale-105 transition-transform cursor-pointer hover:shadow-xl flex flex-col items-center text-center">
-            <img src="/Learning.jpg" alt="MCQ Questions" className="w-24 h-24 rounded-full border-4 border-green-500 mb-4" />
+            <img src="/Learning.jpg" alt="MCQ" className="w-24 h-24 rounded-full border-4 border-gray-500 mb-4" />
             <h3 className="text-2xl font-semibold text-gray-800"> Quiz</h3>
             <p className="text-gray-600 mt-2">Test your knowledge with fun</p>
           </div>
@@ -63,7 +63,7 @@ function Home() {
           <div 
             onClick={() => handleRedirect('/LearningResources')} 
             className="bg-white p-6 rounded-2xl shadow-lg hover:scale-105 transition-transform cursor-pointer hover:shadow-xl flex flex-col items-center text-center">
-            <img src="/library-img.jpg" alt="Learning Resources" className="w-24 h-24 rounded-full border-4 border-blue-400 mb-4" />
+            <img src="/library-img.jpg" alt="Search Books" className="w-24 h-24 rounded-full border-4 border-red-400 mb-4" />
             <h3 className="text-2xl font-semibold text-gray-800">Search Books</h3>
             <p className="text-gray-600 mt-2">Find books for Improve yourself.</p>
           </div>

@@ -24,6 +24,7 @@ import Collaboration from './components/Collaboration.jsx';
 import AdminRealTimeCollaboration from './components/Admin/AdminRealTimeCollaboration.jsx';
 import AdminEditorPage from './components/Admin/AdminEditorPage.jsx';
 import Game from "./components/Game.jsx";
+import ViewModifyQuestion from "./components/Admin/ViewModifyQuestion.jsx"
 
 function App() {
     return (
@@ -48,6 +49,7 @@ function App() {
                     <Route path="/Dashboard/EditGamification" element={<EditGamification />} />
                     <Route path="/Dashboard/AdminAbout" element={<AdminAbout />} />
                     <Route path="/Dashboard/UserManagement" element={<UserManagement />} />
+                    <Route path="/Dashboard/ViewModifyQuestion" element={<ViewModifyQuestion />} />
                     <Route path="/Dashboard/AdminRealTimeCollaboration/Editor/:roomId" element={<AdminEditorPage />} />
                     <Route path="/Dashboard/AdminRealTimeCollaboration" element={<AdminRealTimeCollaboration />} />
 

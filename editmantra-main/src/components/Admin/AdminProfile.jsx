@@ -73,9 +73,9 @@ const AdminProfile = () => {
         {/* Flex container for left and right sections */}
         <div className="flex space-x-8">
           {/* Admin Info Section - Left side */}
-          <div className="bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 shadow-lg rounded-lg w-1/3 p-6 space-y-4">
-            <h2 className="text-4xl font-extrabold text-center text-purple-700 mb-10">
-              Admin Information
+          <div className="bg-blue-400 shadow-lg rounded-lg w-1/3 p-6 space-y-4">
+            <h2 className="text-4xl font-extrabold text-center text-purple-900 mb-10">
+              Profile Details
             </h2>
             <div className="space-y-6 p-6 text-gray-700 text-lg shadow-md rounded-lg border border-gray-200">
               <div className="flex items-center">
@@ -95,7 +95,7 @@ const AdminProfile = () => {
             <div className="flex justify-center">
               <button
                 onClick={handleAuth}
-                className="bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold py-3 px-10 rounded-full shadow-md hover:from-red-600 hover:to-pink-600 transition duration-300 ease-in-out transform hover:scale-105"
+                className="bg-gradient-to-r from-red-800 to-pink-700 text-white font-bold py-3 px-10 rounded-full shadow-md hover:from-red-600 hover:to-pink-600 transition duration-300 ease-in-out transform hover:scale-105"
               >
                 {isLoggedIn ? 'Logout' : 'Login'}
               </button>
@@ -103,9 +103,9 @@ const AdminProfile = () => {
           </div>
 
           {/* Educator Achievements - Right side */}
-          <div className="flex-1 bg-gradient-to-r from-purple-300 via-purple-400 to-purple-500 shadow-lg rounded-lg p-8 space-y-6">
+          <div className="flex-1 bg-cyan-500 shadow-lg rounded-lg p-8 space-y-6">
             <div className="space-y-6 p-6 text-gray-700 mb-6 text-lg shadow-md rounded-lg border border-gray-200">
-            <h2 className="text-3xl text-purple-600 font-semibold mb-4">
+            <h2 className="text-3xl text-purple-800 font-semibold mb-4">
               Educator Achievements
             </h2>
               <div className="flex items-center space-x-4">
@@ -114,15 +114,11 @@ const AdminProfile = () => {
               </div>
               <div className="flex items-center space-x-4">
                 <span className="font-bold text-gray-900 w-40">Achievement 2:</span>
-                <span className="text-lg italic text-gray-800">National Award for Best Teaching Practices</span>
-              </div>
-              <div className="flex items-center space-x-4">
-                <span className="font-bold text-gray-900 w-40">Achievement 3:</span>
                 <span className="text-lg italic text-gray-800">Published Research on Student-Centered Learning</span>
               </div>
 
                 {/* Additional Educator Contributions */}
-                <h2 className="text-3xl text-purple-600 font-semibold mb-4">
+                <h2 className="text-3xl text-purple-800 font-semibold mb-4">
                 Educator Achievements
                 </h2>
                 <div className="flex items-center space-x-4">

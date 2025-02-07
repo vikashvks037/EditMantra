@@ -66,14 +66,14 @@ const Quiz = () => {
 
   return (
     <div className="flex flex-col w-full min-h-full">
-      <div className="w-full max-w-3xl mx-auto p-6 bg-blue-100 shadow-xl flex-grow">
+      <div className="w-full max-w-3xl mx-auto rounded-lg  p-6 bg-gray-500 shadow-xl flex-grow">
         {!questions.length ? (
           <p className="text-xl text-gray-700 text-center">Loading questions...</p>
         ) : (
-          <div className="bg-cyan-100 p-6 mt-6 rounded-lg shadow-lg">
+          <div className="bg-gray-400 p-3 rounded-lg shadow-lg">
             {showCongratulations ? (
               <div className="text-center mt-10">
-                <h2 className="text-3xl font-semibold text-green-600">
+                <h2 className="text-3xl font-semibold text-cyan-600">
                   Congratulations!
                 </h2>
                 <p className="mt-4 text-lg text-gray-700">
@@ -83,7 +83,7 @@ const Quiz = () => {
                 {/* Show Level-Up Message */}
                 {showLevelUp && (
                   <div className="mt-4">
-                    <h2 className="text-3xl font-semibold text-purple-600">
+                    <h2 className="text-3xl font-semibold text-purple-800">
                       🎉 Level Up! 🎉
                     </h2>
                     <p className="text-lg text-gray-700">
@@ -101,10 +101,10 @@ const Quiz = () => {
               </div>
             ) : (
               <div>
-                <h2 className="text-3xl font-semibold text-center mb-4 text-gray-800">
-                  Question
+                <h2 className="text-4xl font-bold text-center mb-6 text-gray-800">
+                  Questions
                 </h2>
-                <h3 className="text-2xl font-medium text-gray-700 mb-6">
+                <h3 className="text-2xl font-medium text-gray-800 mb-4">
                   {currentQuestion.question}
                 </h3>
                 <div className="space-y-3">
@@ -115,8 +115,8 @@ const Quiz = () => {
                       disabled={isAnswering}
                       className={`w-full py-3 px-6 rounded-lg text-white text-lg font-semibold transition-colors duration-300 ${
                         isAnswering
-                          ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-blue-500 hover:bg-blue-600 focus:outline-none"
+                          ? "bg-gray-700 cursor-not-allowed"
+                          : "bg-gray-900 hover:bg-cyan-800 focus:outline-none"
                       }`}
                     >
                       {option}

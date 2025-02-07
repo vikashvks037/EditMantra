@@ -61,13 +61,13 @@ const Profile = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-r from-indigo-100 to-purple-200">
+    <div className="flex flex-col min-h-screen bg-blue-300">
       <Header />
       <div className="flex justify-center items-start flex-grow p-6">
         <div className="flex w-full max-w-6xl space-x-6">
           {/* Left Side: User Profile */}
-          <div className="bg-gradient-to-r from-blue-200 via-blue-300 to-blue-400 shadow-lg rounded-lg w-1/3 p-6 space-y-4">
-            <h1 className="text-4xl font-extrabold text-center text-purple-700 mb-6">User Profile</h1>
+          <div className="bg-cyan-500 shadow-lg rounded-lg w-1/3 p-6 space-y-4">
+            <h1 className="text-4xl font-extrabold text-center text-purple-900 mb-6">Profile Details</h1>
 
             <div className="space-y-4 p-4 text-lg shadow-md rounded-lg border-2 border-blue-300">
               {[ 
@@ -89,7 +89,7 @@ const Profile = () => {
             <div className="text-center">
               <button
                 onClick={handleLogout}
-                className="bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold py-3 px-10 rounded-full shadow-lg hover:from-red-600 hover:to-pink-700 transition duration-300 ease-in-out transform hover:scale-105"
+                className="bg-gradient-to-r from-red-800 to-pink-700 text-white font-bold py-3 px-10 rounded-full shadow-lg hover:from-red-600 hover:to-pink-700 transition duration-300 ease-in-out transform hover:scale-105"
               >
                 Logout
               </button>
@@ -97,40 +97,40 @@ const Profile = () => {
           </div>
 
           {/* Right Side: Additional Fake Information */}
-          <div className="flex-1 bg-gradient-to-r from-purple-300 via-purple-400 to-purple-500 shadow-lg rounded-lg p-8 space-y-6">
-            <h2 className="text-3xl text-purple-600 font-semibold mb-4">Prize Leaderboard</h2>
+          <div className="flex-1 bg-blue-400 shadow-lg rounded-lg p-8 space-y-6">
+            <h2 className="text-3xl text-purple-800 font-semibold mb-4">Prize Leaderboard</h2>
             <div className="space-y-3 text-lg font-medium text-gray-700">
               <div className="flex justify-between">
                 <span>1st Place</span>
-                <span>$500</span>
+                <span>$50</span>
               </div>
               <div className="flex justify-between">
                 <span>2nd Place</span>
-                <span>$300</span>
+                <span>$30</span>
               </div>
               <div className="flex justify-between">
                 <span>3rd Place</span>
-                <span>$100</span>
+                <span>$10</span>
               </div>
             </div>
 
-            <h2 className="text-3xl text-purple-600 font-semibold mb-4">More Information</h2>
+            <h2 className="text-3xl text-purple-800 font-semibold mb-4">More Information</h2>
             <div className="space-y-4 text-lg font-medium text-gray-700">
               <div className="flex justify-between">
                 <span>Completed Challenges</span>
-                <span>15</span>
+                <span>10</span>
               </div>
               <div className="flex justify-between">
                 <span>Pending Challenges</span>
-                <span>3</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Achievements</span>
                 <span>2</span>
               </div>
               <div className="flex justify-between">
+                <span>Achievements</span>
+                <span>1</span>
+              </div>
+              <div className="flex justify-between">
                 <span>Rank</span>
-                <span>Gold</span>
+                <span>Silver</span>
               </div>
             </div>
           </div>

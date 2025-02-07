@@ -12,14 +12,14 @@ const Gamification = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700">
+    <div className="flex flex-col min-h-screen bg-cyan-600">
       <Header />
       <div className="flex-grow flex flex-col justify-center items-center text-white text-center p-6">
         
         {/* Hide title, description & button after click */}
         {!showQuestions && (
           <>
-            <h1 className="text-4xl font-bold mb-4">Improve Your Skills and Experience 🎯</h1>
+            <h1 className="text-4xl font-bold mb-4">Improve Skills and Experience 🎯</h1>
             <p className="text-lg max-w-3xl mb-8">
               Challenge yourself with interactive coding problems !
             </p>
