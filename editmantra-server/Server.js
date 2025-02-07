@@ -148,13 +148,13 @@ io.on('connection', (socket) => {
 
 
 // MongoDB connection
-mongoose.connect('mongodb://127.0.0.1:27017/EditMantra')
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('Error connecting to MongoDB:', err));
-
-// mongoose.connect('mongodb+srv://vikashvks037:Vikash%40123@cluster0.ljjpy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+// mongoose.connect('mongodb://127.0.0.1:27017/EditMantra')
 //   .then(() => console.log('Connected to MongoDB'))
 //   .catch((err) => console.error('Error connecting to MongoDB:', err));
+
+mongoose.connect('mongodb+srv://vikashvks037:Vikash%40123@cluster0.ljjpy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('Error connecting to MongoDB:', err));
 
 
 // User logging
