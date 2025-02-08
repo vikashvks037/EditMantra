@@ -21,7 +21,7 @@ const MCQQuestion = require('./models/mcqQuestion');
 
 const PORT = process.env.PORT || 10000;
 const HOST = '0.0.0.0';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://editmantra-coding-platform.netlify.app';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://openlibrary.org/search.json?title=the%20lost%20world';
 
 // Clustering: Improve performance by using multiple workers
 if (cluster.isMaster) {
