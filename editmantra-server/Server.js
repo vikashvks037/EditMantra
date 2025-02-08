@@ -20,7 +20,20 @@ const MCQQuestion = require('./models/mcqQuestion');
 
 const PORT = process.env.PORT || 10000;
 const HOST = '0.0.0.0';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://openlibrary.org/search.json?title=the%20lost%20world';
+const FRONTEND_URL = 'https://editmantra-coding-platform.netlify.app';
+
+app.use(cors({
+  origin: FRONTEND_URL,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
+
+const io = socketIo(server, {
+  cors: {
+    origin: FRONTEND_URL,
+    methods: ["GET", "POST"]
+  }
+});
 
 if (cluster.isMaster) {
   const numCPUs = os.cpus().length;
@@ -37,19 +50,6 @@ if (cluster.isMaster) {
 } else {
   const app = express();
   const server = http.createServer(app);
-
-  app.use(cors({
-    origin: FRONTEND_URL,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  }));
-
-  const io = socketIo(server, {
-    cors: {
-      origin: FRONTEND_URL,
-      methods: ["GET", "POST"]
-    }
-  });
 
   app.use(bodyParser.json());
   app.use(helmet());
