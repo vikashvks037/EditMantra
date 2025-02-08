@@ -15,7 +15,7 @@ const ACTIONS = {
   JOIN_ROOM: "join-room",
 };
 
-const socket = io("https://editmantra.onrender.com"); // Replace with your backend's URL
+const socket = io("https://editmantra-backend.onrender.com"); // Replace with your backend's URL
 
 const defaultCode = {
   htmlmixed: `<!DOCTYPE html>

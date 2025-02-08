@@ -5,7 +5,7 @@ import axios from 'axios';
 
 // Set up Axios instance with base URL for the backend
 const api = axios.create({
-  baseURL: 'https://editmantra.onrender.com/api', // Update if required for production
+  baseURL: 'https://editmantra-backend.onrender.com/api', // Update if required for production
 });
 
 function UserManagement() {

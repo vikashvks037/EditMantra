@@ -14,7 +14,7 @@ const Quiz = () => {
 
   useEffect(() => {
     axios
-      .get("https://editmantra.onrender.com/api/mcqquestions")
+      .get("https://editmantra-backend.onrender.com/api/mcqquestions")
       .then((res) => setQuestions(res.data))
       .catch((err) => console.log(err));
   }, []);

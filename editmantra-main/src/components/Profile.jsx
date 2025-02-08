@@ -12,7 +12,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const response = await fetch('https://editmantra.onrender.com/api/user/profile', {
+        const response = await fetch('https://editmantra-backend.onrender.com/api/user/profile', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

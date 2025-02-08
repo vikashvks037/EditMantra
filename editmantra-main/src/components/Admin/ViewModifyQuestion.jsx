@@ -8,7 +8,7 @@ const ViewModifyQuestion = () => {
   const [questions, setQuestions] = useState([]);
 
   // Backend URL
-  const BACKEND_URL = "https://editmantra.onrender.com";
+  const BACKEND_URL = "https://editmantra-backend.onrender.com";
 
   // Fetch MCQ and Coding Questions
   useEffect(() => {

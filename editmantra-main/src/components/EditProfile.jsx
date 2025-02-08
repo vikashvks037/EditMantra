@@ -13,7 +13,7 @@ const EditProfile = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (token) {Axios.get('https://editmantra.onrender.com/api/profile', {headers: { Authorization: `Bearer ${token}` },})
+    if (token) {Axios.get('https://editmantra-backend.onrender.com/api/profile', {headers: { Authorization: `Bearer ${token}` },})
         .then((response) => {
           setFormData({name: response.data.name,email: response.data.email,username: response.data.username,});
           setLoading(false);
@@ -39,7 +39,7 @@ const EditProfile = () => {
   };
 
   const handleSubmit = (e) => {e.preventDefault();setError(null);setSuccess(null);
-    Axios.put('https://editmantra.onrender.com/api/profile',{ ...formData },{headers: { Authorization: `Bearer ${token}` },})
+    Axios.put('https://editmantra-backend.onrender.com/api/profile',{ ...formData },{headers: { Authorization: `Bearer ${token}` },})
       .then((response) => {
         setSuccess('Profile updated successfully!');
         setTimeout(() => {
