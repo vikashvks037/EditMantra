@@ -1,159 +1,130 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const socketIo = require("socket.io");  // This imports the socket.io library
+const socketIo = require("socket.io");
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 const validator = require('validator');
 const fs = require('fs');
-const morgan = require('morgan'); // For request logging
+const morgan = require('morgan');
 const http = require('http');
 const cluster = require('cluster');
 const os = require('os');
 const { exec } = require('child_process');
-const User = require('./models/User'); // Ensure path correctness
-const Admin = require('./models/Admin'); // Ensure path correctness
+
+const User = require('./models/User');
+const Admin = require('./models/Admin');
 const Question = require('./models/Question');
 const MCQQuestion = require('./models/mcqQuestion');
-
 
 const PORT = process.env.PORT || 10000;
 const HOST = '0.0.0.0';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://openlibrary.org/search.json?title=the%20lost%20world';
 
-// Clustering: Improve performance by using multiple workers
 if (cluster.isMaster) {
   const numCPUs = os.cpus().length;
   console.log(`Master process running, forking ${numCPUs} workers...`);
-  
+
   for (let i = 0; i < numCPUs; i++) {
     cluster.fork();
   }
 
-  cluster.on('exit', (worker, code, signal) => {
+  cluster.on('exit', (worker) => {
     console.log(`Worker ${worker.process.pid} died, restarting...`);
     cluster.fork();
   });
-
 } else {
   const app = express();
   const server = http.createServer(app);
 
-
- // CORS Middleware
- app.use(cors({
-  origin: FRONTEND_URL, 
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
-
-// Initialize Socket.io with CORS settings
-const io = socketIo(server, {
-  cors: {
+  app.use(cors({
     origin: FRONTEND_URL,
-    methods: ["GET", "POST"]
-  }
-});
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }));
 
-app.use(bodyParser.json());  // For parsing incoming JSON requests
-app.use(helmet());  // Security middleware to set various HTTP headers
-app.use(morgan('dev'));  // Logs HTTP requests for easier debugging
+  const io = socketIo(server, {
+    cors: {
+      origin: FRONTEND_URL,
+      methods: ["GET", "POST"]
+    }
+  });
 
+  app.use(bodyParser.json());
+  app.use(helmet());
+  app.use(morgan('dev'));
 
+  // Define ACTIONS
+  const ACTIONS = {
+    JOIN: "join",
+    JOINED: "joined",
+    DISCONNECTED: "disconnected",
+    CODE_CHANGE: "code-change",
+    SYNC_CODE: "sync-code",
+    JOIN_ROOM: "join-room",
+    LEAVE: "leave"
+  };
 
-// Define the ACTIONS object
-const ACTIONS = {
-  JOIN: "join",
-  JOINED: "joined",
-  DISCONNECTED: "disconnected",
-  CODE_CHANGE: "code-change",
-  SYNC_CODE: "sync-code",
-  JOIN_ROOM: "join-room",
-  LEAVE: "leave"
-};
+  const userSocketMap = {}; // Track users & sockets
 
-
-// A map to track users and their socket IDs
-const userSocketMap = {}; // User to socket ID map
-
-
-function getAllConnectedClients(roomId) {
-  return Array.from(io.sockets.adapter.rooms.get(roomId) || []).map(
-    (socketId) => {
-      return {
+  function getAllConnectedClients(roomId) {
+    return Array.from(io.sockets.adapter.rooms.get(roomId) || []).map(
+      (socketId) => ({
         socketId,
         username: userSocketMap[socketId],
-      };
-    }
-  );
-}
+      })
+    );
+  }
 
-io.on("connection", (socket) => {
-  console.log("New client connected");
+  io.on("connection", (socket) => {
+    console.log("Socket connected:", socket.id);
 
-  socket.on(ACTIONS.JOIN_ROOM, ({ roomId }) => {
-    socket.join(roomId);
-    console.log(`User joined room: ${roomId}`);
-  });
+    // JOIN ROOM
+    socket.on(ACTIONS.JOIN_ROOM, ({ roomId, username }) => {
+      userSocketMap[socket.id] = username;
+      socket.join(roomId);
+      console.log(`${username} joined room: ${roomId}`);
 
-  socket.on(ACTIONS.CODE_CHANGE, ({ roomId, code }) => {
-    socket.to(roomId).emit(ACTIONS.CODE_CHANGE, { code });
-  });
-
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
-  });
-});
-
-
-io.on("connection", (socket) => {
-  console.log("socket connected", socket.id);
-
-  socket.on(ACTIONS.JOIN, ({ roomId, username }) => {
-    userSocketMap[socket.id] = username;
-    socket.join(roomId);
-    const clients = getAllConnectedClients(roomId);
-    clients.forEach(({ socketId }) => {
-      io.to(socketId).emit(ACTIONS.JOINED, {
-        clients,
-        username,
-        socketId: socket.id,
+      const clients = getAllConnectedClients(roomId);
+      clients.forEach(({ socketId }) => {
+        io.to(socketId).emit(ACTIONS.JOINED, {
+          clients,
+          username,
+          socketId: socket.id,
+        });
       });
     });
-  });
-  socket.on("disconnecting", () => {
-    const rooms = Array.from(socket.rooms);
-    rooms.forEach((roomId) => {
-      socket.in(roomId).emit(ACTIONS.DISCONNECTED, {
-        socketId: socket.id,
-        username: userSocketMap[socket.id],
-      });
-      socket.leave(roomId);
+
+    // CODE CHANGE EVENT
+    socket.on(ACTIONS.CODE_CHANGE, ({ roomId, code }) => {
+      socket.to(roomId).emit(ACTIONS.CODE_CHANGE, { code });
     });
-    delete userSocketMap[socket.id];
+
+    // TEXT EDITOR UPDATE (Real-Time Collaboration)
+    socket.on('textChange', (newText) => {
+      socket.broadcast.emit('textUpdate', newText);
+    });
+
+    // HANDLE DISCONNECTION
+    socket.on("disconnecting", () => {
+      const rooms = Array.from(socket.rooms);
+      rooms.forEach((roomId) => {
+        socket.in(roomId).emit(ACTIONS.DISCONNECTED, {
+          socketId: socket.id,
+          username: userSocketMap[socket.id],
+        });
+      });
+    });
+
+    socket.on("disconnect", () => {
+      console.log("User disconnected:", socket.id);
+      delete userSocketMap[socket.id]; // Remove user from tracking
+    });
   });
-});
 
-
-// Real-Time for socket connections
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-
-  // Listen for text updates from the client
-  socket.on('textChange', (newText) => {
-    console.log('Text received:', newText);
-
-    // Broadcast the updated text to all other clients
-    socket.broadcast.emit('textUpdate', newText);
-  });
-
-  // Handle disconnection
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
-});
+  server.keepAliveTimeout = 120000;
+  server.headersTimeout = 120000;
 
 
 // MongoDB connection
@@ -171,11 +142,6 @@ mongoose.connect('mongodb+srv://vikashvks037:Vikash%40123@cluster0.ljjpy.mongodb
   res.send("EditMantra API is running 🚀");
 });
 
-
-
-// Increase server timeout settings to prevent connection issues
-server.keepAliveTimeout = 120000;  // 120 seconds
-server.headersTimeout = 120000;  // 120 seconds
 
 // User logging
 app.post('/user-login', async (req, res) => {
@@ -592,7 +558,6 @@ app.get('/api/mcqquestions', async (req, res) => {
   }
 });
 
-// Start Server
 server.listen(PORT, HOST, () => {
   console.log(`🚀 Server is running on http://${HOST}:${PORT}`);
 });
