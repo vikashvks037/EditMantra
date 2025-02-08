@@ -13,8 +13,8 @@ const About = () => {
   return (
     <div className='flex flex-col min-h-screen bg-cyan-400'>
       <Header />
-      <div className="max-w-5xl mx-auto bg-gray-200 p-8 rounded-lg mt-8 shadow-xl">
-        <h3 className="text-4xl font-bold text-blue-900 mb-6 text-center tracking-wide">
+      <div className="max-w-5xl mx-auto bg-gray-200 p-8 rounded-lg mt-6 shadow-xl">
+        <h3 className="text-4xl font-bold text-blue-900 mb-4 text-center tracking-wide">
           Empowering the Next Generation of Learning
         </h3>
         <p className="text-lg text-gray-800 leading-relaxed mb-6 text-justify">

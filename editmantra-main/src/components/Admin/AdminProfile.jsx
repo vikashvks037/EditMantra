@@ -31,9 +31,9 @@ const AdminProfile = () => {
     if (isLoggedIn) {
       localStorage.removeItem('token'); // Remove token for logout
       setIsLoggedIn(false); // Update state to reflect logout
-      navigate('/login'); // Redirect to login page
+      navigate('/'); // Redirect to login page
     } else {
-      navigate('/login'); // Navigate to login page if not logged in
+      navigate('/'); // Navigate to login page if not logged in
     }
   };
 

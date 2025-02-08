@@ -334,6 +334,24 @@ app.post('/signup/admin', async (req, res) => {
   }
 });
 
+app.get("/api/books", async (req, res) => {
+  const searchTerm = req.query.title;
+  if (!searchTerm) {
+      return res.status(400).json({ error: "Title parameter is required" });
+  }
+
+  try {
+      const response = await fetch(`https://openlibrary.org/search.json?title=${searchTerm}`);
+      if (!response.ok) {
+          throw new Error(`OpenLibrary API error: ${response.statusText}`);
+      }
+      const data = await response.json();
+      res.json(data);
+  } catch (error) {
+      console.error("Error fetching books:", error);
+      res.status(500).json({ error: "Failed to fetch books" });
+  }
+});
 
 // Route to get all users
 app.get('/api/users', async (req, res) => {
