@@ -5,6 +5,7 @@ const socketIo = require("socket.io");  // This imports the socket.io library
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const validator = require('validator');
 const fs = require('fs');
 const morgan = require('morgan'); // For request logging
@@ -16,11 +17,11 @@ const User = require('./models/User'); // Ensure path correctness
 const Admin = require('./models/Admin'); // Ensure path correctness
 const Question = require('./models/Question');
 const MCQQuestion = require('./models/mcqQuestion');
-require('dotenv').config();
+
 
 const PORT = process.env.PORT || 10000;
 const HOST = '0.0.0.0';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://editmantra-coding-platform.netlify.app';
 
 // Clustering: Improve performance by using multiple workers
 if (cluster.isMaster) {
@@ -41,15 +42,6 @@ if (cluster.isMaster) {
   const server = http.createServer(app);
 
 
- // Initialize Socket.io with CORS settings
- const io = socketIo(server, {
-  cors: {
-    origin: FRONTEND_URL,
-    methods: ["GET", "POST"]
-  }
-});
-
-
  // CORS Middleware
  app.use(cors({
   origin: FRONTEND_URL, 
@@ -57,15 +49,18 @@ if (cluster.isMaster) {
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
+// Initialize Socket.io with CORS settings
+const io = socketIo(server, {
+  cors: {
+    origin: FRONTEND_URL,
+    methods: ["GET", "POST"]
+  }
+});
+
 app.use(bodyParser.json());  // For parsing incoming JSON requests
 app.use(helmet());  // Security middleware to set various HTTP headers
 app.use(morgan('dev'));  // Logs HTTP requests for easier debugging
 
-
-
-// Increase server timeout settings to prevent connection issues
-server.keepAliveTimeout = 120000;  // 120 seconds
-server.headersTimeout = 120000;  // 120 seconds
 
 
 // Define the ACTIONS object
@@ -171,12 +166,18 @@ mongoose.connect('mongodb+srv://vikashvks037:Vikash%40123@cluster0.ljjpy.mongodb
   .catch((err) => console.error('Error connecting to MongoDB:', err));
 
 
-// Route for basic API health check
-app.get("/", (req, res) => {
+ // Route for basic API health check
+ app.get("/", (req, res) => {
   res.send("EditMantra API is running 🚀");
 });
 
-  // User logging
+
+
+// Increase server timeout settings to prevent connection issues
+server.keepAliveTimeout = 120000;  // 120 seconds
+server.headersTimeout = 120000;  // 120 seconds
+
+// User logging
 app.post('/user-login', async (req, res) => {
   const { email, password } = req.body; // User login does not require key
 
@@ -591,8 +592,8 @@ app.get('/api/mcqquestions', async (req, res) => {
   }
 });
 
- // Start Server
- server.listen(PORT, HOST, () => {
+// Start Server
+server.listen(PORT, HOST, () => {
   console.log(`🚀 Server is running on http://${HOST}:${PORT}`);
 });
 };
