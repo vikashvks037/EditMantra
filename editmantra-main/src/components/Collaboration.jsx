@@ -34,7 +34,7 @@ const Collaboration = () => {
     try {
         const backendURL = process.env.NODE_ENV === "production"
           ? "https://your-production-url.com/compile"
-          : "http://localhost:5000/compile";
+          : "https://editmantra.onrender.com/compile";
         
         const response = await axios.post(backendURL, {
             code,

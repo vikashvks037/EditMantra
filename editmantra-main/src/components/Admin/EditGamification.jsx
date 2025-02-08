@@ -53,7 +53,7 @@ function EditGamification() {
     // Submit MCQ question
     const newQuestion = { question, options, correctAnswer };
     try {
-      await axios.post("http://localhost:5000/api/admin/add-question", newQuestion);
+      await axios.post("https://editmantra.onrender.com/api/admin/add-question", newQuestion);
       alert("MCQ question added successfully");
       setQuestion("");
       setOptions(["", "", "", ""]);

@@ -27,7 +27,7 @@ const Login = () => {
       const requestData = { email, password, role, ...(role === 'admin' && { key }) };
 
       const response = await axios.post(
-        role === 'admin' ? 'http://localhost:5000/admin-login' : 'http://localhost:5000/user-login',
+        role === 'admin' ? 'https://editmantra.onrender.com/admin-login' : 'https://editmantra.onrender.com/user-login',
         requestData
       );
 

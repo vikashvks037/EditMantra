@@ -21,7 +21,7 @@ function RealTimeCollaboration() {
   // Function to verify the username from both User and Admin schemas
   const verifyUsername = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/verify-username', { username });
+      const response = await axios.post('https://editmantra.onrender.com/verify-username', { username });
 
       if (response.data.message === 'Username verified successfully') {
         return true; // Username exists in User or Admin schema

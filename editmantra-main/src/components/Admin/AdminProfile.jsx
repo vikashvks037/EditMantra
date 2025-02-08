@@ -13,7 +13,7 @@ const AdminProfile = () => {
   useEffect(() => {
     const fetchAdminInfo = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/admin/profile');
+        const response = await fetch('https://editmantra.onrender.com/api/admin/profile');
         if (!response.ok) {
           throw new Error('Failed to fetch admin info');
         }

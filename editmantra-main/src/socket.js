@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 
-const SOCKET_URL = "http://localhost:5000"; // Backend server URL
+const SOCKET_URL = "https://editmantra.onrender.com"; // Backend server URL
 
 // Create a function to initialize the socket
 const initSocket = () => {

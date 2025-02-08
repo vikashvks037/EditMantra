@@ -20,8 +20,8 @@ const Signup = () => {
 
     try {
       const endpoint = role === 'admin' 
-        ? 'http://localhost:5000/signup/admin' 
-        : 'http://localhost:5000/signup/user';
+        ? 'https://editmantra.onrender.com/signup/admin' 
+        : 'https://editmantra.onrender.com/signup/user';
 
       const response = await axios.post(endpoint, {
         name, username, email, password, role,
