@@ -157,8 +157,12 @@ mongoose.connect('mongodb+srv://vikashvks037:Vikash%40123@cluster0.ljjpy.mongodb
   .then(() => console.log('Connected to MongoDB'))
   .catch((err) => console.error('Error connecting to MongoDB:', err));
 
+// Route for basic API health check
+app.get("/", (req, res) => {
+  res.send("EditMantra API is running 🚀");
+});
 
-// User logging
+  // User logging
 app.post('/user-login', async (req, res) => {
   const { email, password } = req.body; // User login does not require key
 
