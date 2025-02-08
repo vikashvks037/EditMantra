@@ -37,7 +37,7 @@ const Profile = () => {
   // Handle logout
   const handleLogout = () => {
     localStorage.removeItem('token'); // Remove token to log out
-    navigate('/login'); // Redirect to login page
+    navigate('/'); // Redirect to login page
   };
 
   if (error) {
@@ -64,9 +64,10 @@ const Profile = () => {
     <div className="flex flex-col min-h-screen bg-blue-300">
       <Header />
       <div className="flex justify-center items-start flex-grow p-6">
-        <div className="flex w-full max-w-6xl space-x-6">
+        {/* Responsive Layout: Column on small screens, Row on medium+ screens */}
+        <div className="flex flex-col md:flex-row w-full max-w-6xl space-y-6 md:space-y-0 md:space-x-6">
           {/* Left Side: User Profile */}
-          <div className="bg-cyan-500 shadow-lg rounded-lg w-1/3 p-6 space-y-4">
+          <div className="bg-cyan-500 shadow-lg rounded-lg w-full md:w-1/3 p-6 space-y-4">
             <h1 className="text-4xl font-extrabold text-center text-purple-900 mb-6">Profile Details</h1>
 
             <div className="space-y-4 p-4 text-lg shadow-md rounded-lg border-2 border-blue-300">

@@ -11,7 +11,6 @@ import Profile from './components/Profile';
 import RealTimeCollaboration from './components/RealTimeCollaboration.jsx';
 import Gamification from './components/Gamification.jsx';
 import LearningResources from './components/LearningResources.jsx';
-import EditProfile from './components/EditProfile.jsx';
 import About from './components/About.jsx';
 import BookList from "./components/BookList/BookList.jsx";
 import BookDetails from "./components/BookDetails/BookDetails";
@@ -39,7 +38,6 @@ function App() {
                     <Route path="/Home" element={<Home />} />
                     <Route path="/SignUp" element={<SignUp />} />
                     <Route path="/Home/Profile" element={<Profile />} />
-                    <Route path="/Home/EditProfile" element={<EditProfile />} />
                     <Route path="/Home/About" element={<About />} />
                     <Route path="/game" element={<Game />} />
                     

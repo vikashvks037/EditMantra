@@ -25,15 +25,18 @@ const BookDetails = () => {
                 console.log("Fetched book data:", data);
 
                 if (data) {
+                    // Extract relevant details safely
                     const { description, title, covers, subject_places, subject_times, subjects } = data;
 
                     const newBook = {
                         title: title || "No Title Available",
                         description: typeof description === "string" ? description : description?.value || "No description found",
-                        cover_img: covers ? `https://covers.openlibrary.org/b/id/${covers[0]}-L.jpg` : coverImg,
-                        subject_places: subject_places?.join(", ") || "No subject places found",
-                        subject_times: subject_times?.join(", ") || "No subject times found",
-                        subjects: subjects?.join(", ") || "No subjects found"
+                        cover_img: covers && covers.length > 0 
+                            ? `https://covers.openlibrary.org/b/id/${covers[0]}-L.jpg` 
+                            : coverImg,
+                        subject_places: subject_places?.length ? subject_places.join(", ") : "No subject places found",
+                        subject_times: subject_times?.length ? subject_times.join(", ") : "No subject times found",
+                        subjects: subjects?.length ? subjects.join(", ") : "No subjects found"
                     };
 
                     setBook(newBook);
@@ -45,7 +48,7 @@ const BookDetails = () => {
             } catch (error) {
                 console.error("Error fetching book details:", error);
                 setBook(null);
-                setError(error.message);
+                setError("Failed to fetch book details.");
             }
             setLoading(false);
         };

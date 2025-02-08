@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const socketIo = require("socket.io");  // This imports the socket.io library
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const fetch = require("node-fetch"); // Ensure node-fetch is installed
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const validator = require('validator');
@@ -334,6 +335,7 @@ app.post('/signup/admin', async (req, res) => {
   }
 });
 
+// Route to fetch books by title
 app.get("/api/books", async (req, res) => {
   const searchTerm = req.query.title;
   if (!searchTerm) {
@@ -350,6 +352,26 @@ app.get("/api/books", async (req, res) => {
   } catch (error) {
       console.error("Error fetching books:", error);
       res.status(500).json({ error: "Failed to fetch books" });
+  }
+});
+
+// ✅ New Route to fetch book details by ID
+app.get("/api/book/:id", async (req, res) => {
+  const bookId = req.params.id;
+  if (!bookId) {
+      return res.status(400).json({ error: "Book ID is required" });
+  }
+
+  try {
+      const response = await fetch(`https://openlibrary.org/works/${bookId}.json`);
+      if (!response.ok) {
+          throw new Error(`OpenLibrary API error: ${response.statusText}`);
+      }
+      const data = await response.json();
+      res.json(data);
+  } catch (error) {
+      console.error("Error fetching book details:", error);
+      res.status(500).json({ error: "Failed to fetch book details" });
   }
 });
 

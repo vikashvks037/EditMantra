@@ -9,7 +9,6 @@ const AdminProfile = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // Fetch admin info from the backend when the component is mounted
   useEffect(() => {
     const fetchAdminInfo = async () => {
       try {
@@ -26,18 +25,16 @@ const AdminProfile = () => {
     fetchAdminInfo();
   }, []);
 
-  // Handle login/logout logic
   const handleAuth = () => {
     if (isLoggedIn) {
-      localStorage.removeItem('token'); // Remove token for logout
-      setIsLoggedIn(false); // Update state to reflect logout
-      navigate('/'); // Redirect to login page
+      localStorage.removeItem('token');
+      setIsLoggedIn(false);
+      navigate('/');
     } else {
-      navigate('/'); // Navigate to login page if not logged in
+      navigate('/');
     }
   };
 
-  // Show loading or error while fetching admin data
   if (!adminInfo && !error) {
     return (
       <div className="flex flex-col min-h-screen bg-gray-100">
@@ -50,7 +47,6 @@ const AdminProfile = () => {
     );
   }
 
-  // If there's an error while fetching
   if (error) {
     return (
       <div className="flex flex-col min-h-screen bg-gray-100">
@@ -65,33 +61,29 @@ const AdminProfile = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-blue-100">
-      {/* Header */}
       <AdminHeader />
 
-      {/* Main Content */}
-      <div className="flex-grow container mx-auto mt-4 mb-4">
-        {/* Flex container for left and right sections */}
-        <div className="flex space-x-8">
-          {/* Admin Info Section - Left side */}
-          <div className="bg-blue-400 shadow-lg rounded-lg w-1/3 p-6 space-y-4">
-            <h2 className="text-4xl font-extrabold text-center text-purple-900 mb-10">
+      <div className="flex-grow container mx-auto mt-4 mb-4 px-4">
+        <div className="flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-8">
+          {/* Admin Info Section */}
+          <div className="bg-blue-400 shadow-lg rounded-lg w-full md:w-1/3 p-6 space-y-4">
+            <h2 className="text-3xl font-extrabold text-center text-purple-900 mb-6">
               Profile Details
             </h2>
             <div className="space-y-6 p-6 text-gray-700 text-lg shadow-md rounded-lg border border-gray-200">
-              <div className="flex items-center">
-                <span className="font-bold text-gray-900 w-40">Name:</span>
+              <div className="flex flex-col md:flex-row md:items-center">
+                <span className="font-bold text-gray-900 w-full md:w-40">Name:</span>
                 <span className="text-lg">{adminInfo.name}</span>
               </div>
-              <div className="flex items-center">
-                <span className="font-bold text-gray-900 w-40">Email:</span>
+              <div className="flex flex-col md:flex-row md:items-center">
+                <span className="font-bold text-gray-900 w-full md:w-40">Email:</span>
                 <span className="text-lg">{adminInfo.email}</span>
               </div>
-              <div className="flex items-center">
-                <span className="font-bold text-gray-900 w-40">Username:</span>
+              <div className="flex flex-col md:flex-row md:items-center">
+                <span className="font-bold text-gray-900 w-full md:w-40">Username:</span>
                 <span className="text-lg">@{adminInfo.username}</span>
               </div>
             </div>
-            {/* Logout Button */}
             <div className="flex justify-center">
               <button
                 onClick={handleAuth}
@@ -102,43 +94,41 @@ const AdminProfile = () => {
             </div>
           </div>
 
-          {/* Educator Achievements - Right side */}
+          {/* Educator Achievements Section */}
           <div className="flex-1 bg-cyan-500 shadow-lg rounded-lg p-8 space-y-6">
-            <div className="space-y-6 p-6 text-gray-700 mb-6 text-lg shadow-md rounded-lg border border-gray-200">
-            <h2 className="text-3xl text-purple-800 font-semibold mb-4">
+            <h2 className="text-3xl text-purple-800 font-semibold mb-4 text-center md:text-left">
               Educator Achievements
             </h2>
-              <div className="flex items-center space-x-4">
-                <span className="font-bold text-gray-900 w-40">Achievement 1:</span>
+            <div className="space-y-6 p-6 text-gray-700 text-lg shadow-md rounded-lg border border-gray-200">
+              <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0">
+                <span className="font-bold text-gray-900 w-full md:w-40">Achievement 1:</span>
                 <span className="text-lg italic text-gray-800">Excellence in Educational Leadership</span>
               </div>
-              <div className="flex items-center space-x-4">
-                <span className="font-bold text-gray-900 w-40">Achievement 2:</span>
+              <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0">
+                <span className="font-bold text-gray-900 w-full md:w-40">Achievement 2:</span>
                 <span className="text-lg italic text-gray-800">Published Research on Student-Centered Learning</span>
               </div>
 
-                {/* Additional Educator Contributions */}
-                <h2 className="text-3xl text-purple-800 font-semibold mb-4">
-                Educator Achievements
-                </h2>
-                <div className="flex items-center space-x-4">
-                  <span className="font-bold text-gray-900 w-40">Contribution 1:</span>
-                  <span className="text-lg italic text-gray-800">Developed a Digital Curriculum for Coding Classes</span>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <span className="font-bold text-gray-900 w-40">Contribution 2:</span>
-                  <span className="text-lg italic text-gray-800">Hosted Workshops on Effective Online Teaching</span>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <span className="font-bold text-gray-900 w-40">Contribution 3:</span>
-                  <span className="text-lg italic text-gray-800">Mentored Educators in Integrating Technology into Classrooms</span>
-                </div>
+              <h2 className="text-3xl text-purple-800 font-semibold mb-4 text-center md:text-left">
+                Educator Contributions
+              </h2>
+              <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0">
+                <span className="font-bold text-gray-900 w-full md:w-40">Contribution 1:</span>
+                <span className="text-lg italic text-gray-800">Developed a Digital Curriculum for Coding Classes</span>
+              </div>
+              <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0">
+                <span className="font-bold text-gray-900 w-full md:w-40">Contribution 2:</span>
+                <span className="text-lg italic text-gray-800">Hosted Workshops on Effective Online Teaching</span>
+              </div>
+              <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0">
+                <span className="font-bold text-gray-900 w-full md:w-40">Contribution 3:</span>
+                <span className="text-lg italic text-gray-800">Mentored Educators in Integrating Technology into Classrooms</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Footer */}
       <Footer />
     </div>
   );
