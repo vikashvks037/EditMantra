@@ -23,20 +23,18 @@ function EditGamification() {
   const handleSubmitCodingQuestion = async (e) => {
     e.preventDefault();
 
-    // Validation for adding the question card
     if (!title || !description || !difficulty) {
       setErrorMessage('Please fill in all fields.');
       return;
     }
 
-    // Submit card details
     try {
       await axios.post('https://editmantra-backend.onrender.com/api/questions/add', {
         title,
         description,
         difficulty,
       });
-      setSuccessMessage('Coding question card added successfully!');
+      setSuccessMessage('Coding question added successfully!');
       setTitle('');
       setDescription('');
       setDifficulty('');
@@ -50,7 +48,6 @@ function EditGamification() {
   const handleSubmitMCQQuestion = async (e) => {
     e.preventDefault();
 
-    // Submit MCQ question
     const newQuestion = { question, options, correctAnswer };
     try {
       await axios.post("https://editmantra-backend.onrender.com/api/admin/add-question", newQuestion);
@@ -67,7 +64,7 @@ function EditGamification() {
     <div className="bg-gradient-to-r from-blue-50 via-blue-100 to-blue-200 min-h-screen flex flex-col">
       <AdminHeader />
       <main className="flex-grow container mx-auto p-6">
-        <section className="flex space-x-8">
+        <section className="flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-8">
           {/* Coding Question Card Section */}
           <div className="flex-1 p-6 bg-white shadow-lg rounded-lg">
             <h2 className="text-3xl font-bold text-center mb-6 text-blue-800">Add Coding Question</h2>
@@ -89,7 +86,7 @@ function EditGamification() {
                   onChange={(e) => setDescription(e.target.value)}
                 />
               </div>
-              <div className='mb-4'>
+              <div className="mb-4">
                 <select
                   className="w-full py-3 border bg-white font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={difficulty}
@@ -100,8 +97,8 @@ function EditGamification() {
                   <option value="Medium">Medium</option>
                   <option value="Hard">Hard</option>
                 </select>
-                </div>
-                <div >
+              </div>
+              <div>
                 <button
                   type="submit"
                   className="w-full mb-2 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -110,7 +107,6 @@ function EditGamification() {
                 </button>
               </div>
             </form>
-            {/* Display success or error messages for coding question */}
             {successMessage && (
               <div className="text-green-600 font-semibold">{successMessage}</div>
             )}
