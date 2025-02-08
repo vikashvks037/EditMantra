@@ -8,8 +8,6 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const validator = require('validator');
 const fs = require('fs');
-const cluster = require('cluster');
-const os = require('os');
 const morgan = require('morgan'); // For request logging
 const http = require('http');
 const { exec } = require('child_process');
@@ -19,35 +17,27 @@ const Question = require('./models/Question');
 const MCQQuestion = require('./models/mcqQuestion');
 
 
-const PORT = process.env.PORT || 10000;
-const HOST = '0.0.0.0';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const app = express();
 
-// Clustering: Improve performance by using multiple workers
-if (cluster.isMaster) {
-  const numCPUs = os.cpus().length;
-  console.log(`Master process running, forking ${numCPUs} workers...`);
-  
-  for (let i = 0; i < numCPUs; i++) {
-    cluster.fork();
+
+// Create an HTTP server using Express
+const server = http.createServer(app);
+
+
+// Initialize Socket.io with CORS configuration
+const io = socketIo(server, {
+  cors: {
+    origin: "http://localhost:3000", // Replace with your client-side URL
+    methods: ["GET", "POST"]
   }
-
-  cluster.on('exit', (worker, code, signal) => {
-    console.log(`Worker ${worker.process.pid} died, restarting...`);
-    cluster.fork();
-  });
-
-} else {
-  const app = express();
-  const server = http.createServer(app);
+});
 
 
-
- // CORS Middleware
- app.use(cors({
-  origin: FRONTEND_URL, 
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+// Middleware
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Allow requests from the frontend (adjust this URL if needed)
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allow these HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allow these headers
 }));
 
 
@@ -56,13 +46,12 @@ app.use(helmet());  // Security middleware to set various HTTP headers
 app.use(morgan('dev'));  // Logs HTTP requests for easier debugging
 
 
-// Initialize Socket.io with CORS settings
-const io = socketIo(server, {
-  cors: {
-    origin: FRONTEND_URL,
-    methods: ["GET", "POST"]
-  }
+// Rate Limiting: Limiting requests to avoid abuse
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,  // 15 minutes
+  max: 100,  // Max 100 requests per window per IP
 });
+app.use(limiter);
 
 
 // Define the ACTIONS object
@@ -167,14 +156,6 @@ mongoose.connect('mongodb+srv://vikashvks037:Vikash%40123@cluster0.ljjpy.mongodb
   .then(() => console.log('Connected to MongoDB'))
   .catch((err) => console.error('Error connecting to MongoDB:', err));
 
-// Route for basic API health check
-app.get("/", (req, res) => {
-res.send("EditMantra API is running 🚀");
-});
-
-// Increase server timeout settings to prevent connection issues
-server.keepAliveTimeout = 120000;  // 120 seconds
-server.headersTimeout = 120000;  // 120 seconds
 
 // User logging
 app.post('/user-login', async (req, res) => {
@@ -592,7 +573,7 @@ app.get('/api/mcqquestions', async (req, res) => {
 });
 
 // Start Server
-server.listen(PORT, HOST, () => {
-  console.log(`🚀 Server is running on http://${HOST}:${PORT}`);
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
-}
