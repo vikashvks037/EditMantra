@@ -12,7 +12,7 @@ function AdminHeader() {
     <header className="w-full p-2 bg-cyan-50 shadow-md flex justify-between items-center">
       {/* Logo */}
       <Link
-        to="/"
+        to="/Dashboard"
         className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-cyan-600 text-transparent bg-clip-text hover:from-cyan-500 hover:to-purple-500 transition duration-300 ease-in-out"
       >
         EditMantra
@@ -64,6 +64,17 @@ function AdminHeader() {
           onClick={() => setMenuOpen(false)}
         >
           About Us
+        </Link>
+        <Link
+          to="/"
+          className={`text-xl font-semibold px-4 py-2 md:px-0 ${
+            isActive("/")
+              ? "text-blue-600 underline"
+              : "text-cyan-900 hover:text-blue-400 hover:underline"
+          }`}
+          onClick={() => setMenuOpen(false)}
+        >
+          Log In
         </Link>
       </nav>
     </header>

@@ -16,7 +16,6 @@ const User = require('./models/User'); // Ensure path correctness
 const Admin = require('./models/Admin'); // Ensure path correctness
 const Question = require('./models/Question');
 const MCQQuestion = require('./models/mcqQuestion');
-const Execution = require('./models/Execution');
 
 
 const app = express();
@@ -25,23 +24,53 @@ const app = express();
 // Create an HTTP server using Express
 const server = http.createServer(app);
 
+
 const PORT = process.env.PORT || 5000;
+
 
 // Initialize Socket.io with CORS configuration
 const io = socketIo(server, {
   cors: {
-    origin: "https://editmantra-frontend.onrender.com", // Replace with your client-side URL
+    origin: "http://localhost:3000", // Replace with your client-side URL
     methods: ["GET", "POST"]
   }
 });
 
-
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'https://editmantra-frontend.onrender.com', // Allow requests from the frontend (adjust this URL if needed)
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Allow requests from the frontend (adjust this URL if needed)
   methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allow these HTTP methods
   allowedHeaders: ['Content-Type', 'Authorization'], // Allow these headers
 }));
+
+
+// MongoDB connection
+mongoose.connect('mongodb://127.0.0.1:27017/EditMantra')
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('Error connecting to MongoDB:', err));
+
+
+// // MongoDB connection 
+// mongoose.connect('mongodb+srv://vikashvks037:Vikash%40123@cluster0.ljjpy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+//   .then(() => console.log('Connected to MongoDB'))
+//   .catch((err) => console.error('Error connecting to MongoDB:', err));
+
+
+// // Initialize Socket.io with CORS configuration
+// const io = socketIo(server, {
+//   cors: {
+//     origin: "https://editmantra-frontend.onrender.com", // Replace with your client-side URL
+//     methods: ["GET", "POST"]
+//   }
+// });
+
+
+// // Middleware
+// app.use(cors({
+//   origin: process.env.FRONTEND_URL || 'https://editmantra-frontend.onrender.com', // Allow requests from the frontend (adjust this URL if needed)
+//   methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allow these HTTP methods
+//   allowedHeaders: ['Content-Type', 'Authorization'], // Allow these headers
+// }));
 
 
 app.use(bodyParser.json());  // For parsing incoming JSON requests
@@ -149,15 +178,6 @@ io.on('connection', (socket) => {
   });
 });
 
-
-// MongoDB connection
-// mongoose.connect('mongodb://127.0.0.1:27017/EditMantra')
-//   .then(() => console.log('Connected to MongoDB'))
-//   .catch((err) => console.error('Error connecting to MongoDB:', err));
-
-mongoose.connect('mongodb+srv://vikashvks037:Vikash%40123@cluster0.ljjpy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('Error connecting to MongoDB:', err));
 
 // Route for basic API health check
 app.get("/", (req, res) => {
@@ -550,6 +570,7 @@ app.post('/verify-username', async (req, res) => {
   }
 });
 
+
 app.post('/compile', async (req, res) => {
   const { code, lang, input } = req.body;
 
@@ -557,39 +578,40 @@ app.post('/compile', async (req, res) => {
     return res.status(400).json({ error: 'Code and language are required' });
   }
 
-  const fileName = `temp.${lang}`;
-  fs.writeFileSync(fileName, code);
-
   let command = '';
   switch (lang) {
     case 'python':
-      command = `python ${fileName}`;
+      command = `python -c "${code.replace(/"/g, '\\"')}"`;
       break;
     case 'javascript':
-      command = `node ${fileName}`;
+      command = `node -e "${code.replace(/"/g, '\\"')}"`;
       break;
     default:
       return res.status(400).json({ error: 'Unsupported language' });
   }
 
-  exec(command, async (error, stdout, stderr) => {
-    const executionData = {
+  exec(command, (error, stdout, stderr) => {
+    const submission = new CodeSubmission({
       code,
       lang,
-      input: input || '',
-      output: stdout || '',
-      stderr: stderr || '',
-      status: error ? 'error' : 'completed',
-    };
+      input,
+      output: stdout,
+      error: error ? error.message : stderr,
+    });
 
-    try {
-      const savedExecution = await Execution.create(executionData); // Save to MongoDB
-      res.json({ ...executionData, _id: savedExecution._id });
-    } catch (dbError) {
-      res.status(500).json({ error: 'Database Error', details: dbError.message });
-    }
+    submission.save()
+      .then(() => {
+        res.json({
+          stdout,
+          stderr,
+          compile_output: 'Compilation successful',
+          status: 'completed'
+        });
+      })
+      .catch((err) => res.status(500).json({ error: 'Failed to save to database', details: err }));
   });
 });
+
 
 
 //Add Question (Admin Only)

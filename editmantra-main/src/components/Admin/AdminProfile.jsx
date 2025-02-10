@@ -72,30 +72,29 @@ const AdminProfile = () => {
       <AdminHeader />
 
       {/* 🌟 Profile Card */}
-      <div className="flex-grow container mx-auto mt-14 p-6 flex justify-center">
+      <div className="flex-grow container mx-auto p-6 flex justify-center">
         <div className="bg-white shadow-2xl rounded-lg p-8 w-full max-w-md border-t-4 border-blue-500">
           <div className="text-center">
             <div className="w-24 h-24 mx-auto rounded-full bg-blue-500 flex items-center justify-center text-white text-4xl font-bold shadow-lg">
               {adminInfo.name.charAt(0)}
             </div>
             <h2 className="text-2xl font-bold text-blue-700 mt-4">{adminInfo.name}</h2>
-            <p className="text-gray-600 text-sm">@{adminInfo.username}</p>
           </div>
 
           {/* 📌 Admin Info List */}
           <div className="mt-6 space-y-4 text-gray-700">
             <div className="flex items-center">
               <span className="font-bold w-32">Email:</span>
-              <span>{adminInfo.email}</span>
+              <span className="font-semibold">{adminInfo.email}</span>
             </div>
             <div className="flex items-center">
               <span className="font-bold w-32">Username:</span>
-              <span>@{adminInfo.username}</span>
+              <span className="font-semibold">{adminInfo.username}</span>
             </div>
           </div>
 
           {/* 🚀 Logout Button */}
-          <div className="mt-6 flex justify-center">
+          <div className="mt-20 flex justify-center">
             <button
               onClick={handleAuth}
               className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold rounded-full shadow-lg transform hover:scale-105 transition duration-300"
