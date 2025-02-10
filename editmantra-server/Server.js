@@ -16,6 +16,7 @@ const User = require('./models/User'); // Ensure path correctness
 const Admin = require('./models/Admin'); // Ensure path correctness
 const Question = require('./models/Question');
 const MCQQuestion = require('./models/mcqQuestion');
+const Execution = require('./models/Execution');
 
 
 const app = express();
@@ -549,7 +550,7 @@ app.post('/verify-username', async (req, res) => {
   }
 });
 
-app.post('/compile', (req, res) => {
+app.post('/compile', async (req, res) => {
   const { code, lang, input } = req.body;
 
   if (!code || !lang) {
@@ -557,9 +558,6 @@ app.post('/compile', (req, res) => {
   }
 
   const fileName = `temp.${lang}`;
-  const inputData = input || '';
-
-  // Save the code to a temporary file
   fs.writeFileSync(fileName, code);
 
   let command = '';
@@ -568,23 +566,28 @@ app.post('/compile', (req, res) => {
       command = `python ${fileName}`;
       break;
     case 'javascript':
-      // Execute JavaScript code with Node.js
       command = `node ${fileName}`;
       break;
     default:
       return res.status(400).json({ error: 'Unsupported language' });
   }
 
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      return res.status(500).json({ stderr: error.message });
-    }
+  exec(command, async (error, stdout, stderr) => {
+    const executionData = {
+      code,
+      lang,
+      input: input || '',
+      output: stdout || '',
+      stderr: stderr || '',
+      status: error ? 'error' : 'completed',
+    };
 
-    if (stderr) {
-      return res.status(500).json({ stderr });
+    try {
+      const savedExecution = await Execution.create(executionData); // Save to MongoDB
+      res.json({ ...executionData, _id: savedExecution._id });
+    } catch (dbError) {
+      res.status(500).json({ error: 'Database Error', details: dbError.message });
     }
-
-    res.json({ stdout, stderr, compile_output: 'Compilation successful', status: 'completed' });
   });
 });
 

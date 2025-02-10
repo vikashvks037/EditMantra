@@ -9,7 +9,7 @@ function AdminHeader() {
   const isActive = (path) => location.pathname.split("?")[0] === path;
 
   return (
-    <header className="w-full p-4 bg-cyan-50 shadow-md flex justify-between items-center">
+    <header className="w-full p-2 bg-cyan-50 shadow-md flex justify-between items-center">
       {/* Logo */}
       <Link
         to="/"
