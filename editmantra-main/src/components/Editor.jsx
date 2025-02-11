@@ -8,7 +8,6 @@ import "codemirror/mode/css/css";
 import "codemirror/addon/edit/closetag";
 import "codemirror/addon/edit/closebrackets";
 import io from "socket.io-client";
-import Footer from "./Footer"; // Ensure Footer is in the correct path
 
 const ACTIONS = {
   CODE_CHANGE: "code-change",
@@ -215,12 +214,6 @@ return (
           View Result
         </button>
         <button
-          onClick={handleClearScreen}
-          className="px-4 py-2 bg-red-700 text-white rounded-sm hover:bg-red-900"
-        >
-          Clear Screen
-        </button>
-        <button
           onClick={handleConsoleOutput}
           className="px-4 py-2 bg-cyan-600 text-white rounded-sm hover:bg-cyan-800"
         >
@@ -231,6 +224,12 @@ return (
           className="px-4 py-2 bg-purple-600 text-white rounded-sm hover:bg-purple-500"
         >
           Clear Console
+        </button>
+        <button
+          onClick={handleClearScreen}
+          className="px-4 py-2 bg-red-700 text-white rounded-sm hover:bg-red-900"
+        >
+          Clear Screen
         </button>
       </div>
     </div>
@@ -260,7 +259,6 @@ return (
         className="w-1/2 h-72 border bg-green-300"
       ></iframe>
     </div>
-    <Footer />
   </div>
 );
 };
