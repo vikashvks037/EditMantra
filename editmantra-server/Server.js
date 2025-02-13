@@ -8,15 +8,12 @@ const fetch = require("node-fetch"); // Ensure node-fetch is installed
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const validator = require('validator');
-const fs = require('fs');
 const morgan = require('morgan'); // For request logging
 const http = require('http');
-const { exec } = require('child_process');
 const User = require('./models/User'); // Ensure path correctness
 const Admin = require('./models/Admin'); // Ensure path correctness
 const Question = require('./models/Question');
 const MCQQuestion = require('./models/mcqQuestion');
-const CodeSubmission = require('./models/CodeSubmission'); // Adjust the path if needed
 
 
 
@@ -158,25 +155,6 @@ io.on("connection", (socket) => {
       socket.leave(roomId);
     });
     delete userSocketMap[socket.id];
-  });
-});
-
-
-// Real-Time for socket connections
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-
-  // Listen for text updates from the client
-  socket.on('textChange', (newText) => {
-    console.log('Text received:', newText);
-
-    // Broadcast the updated text to all other clients
-    socket.broadcast.emit('textUpdate', newText);
-  });
-
-  // Handle disconnection
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
   });
 });
 
@@ -413,12 +391,12 @@ app.get('/api/users', async (req, res) => {
 // Route to update user details by ID
 app.put('/api/users/:id', async (req, res) => {
   const { id } = req.params;
-  const { stars, review, feedback } = req.body;
+  const { stars, points, feedback } = req.body;
 
   try {
     const updatedUser = await User.findByIdAndUpdate(
       id,
-      { stars, review, feedback },
+      { stars, points , feedback },
       { new: true }
     );
 
@@ -471,7 +449,7 @@ app.get('/api/user/profile', async (req, res) => {
 
 // Route to add a question
 app.post('/api/questions/add', async (req, res) => {
-  const { title, description, difficulty } = req.body;
+  const { title, description, difficulty, testCases } = req.body;
 
   if (!title || !description || !difficulty) {
     return res.status(400).json({ message: 'Please provide all required fields.' });
@@ -482,10 +460,14 @@ app.post('/api/questions/add', async (req, res) => {
       title,
       description,
       difficulty,
+      testCases: Array.isArray(testCases) ? testCases.map(tc => ({
+        input: isNaN(tc.input) ? tc.input : Number(tc.input),  // Convert to number if possible
+        expectedOutput: isNaN(tc.expectedOutput) ? tc.expectedOutput : Number(tc.expectedOutput),
+      })) : []
     });
 
     await newQuestion.save();
-    res.status(201).json({ message: 'Question added successfully!' });
+    res.status(201).json({ message: 'Question added successfully!', question: newQuestion });
   } catch (error) {
     console.error('Error adding question:', error);
     res.status(500).json({ message: 'Failed to add question. Please try again.' });
@@ -573,47 +555,99 @@ app.post('/verify-username', async (req, res) => {
 });
 
 
-app.post('/compile', async (req, res) => {
-  const { code, lang, input } = req.body;
+// Compiler code 
+const fs = require("fs/promises"); // ✅ Fix: Import fs/promises for async file handling
+const { spawn } = require("child_process");
 
-  if (!code || !lang) {
-    return res.status(400).json({ error: 'Code and language are required' });
+app.post("/compile", async (req, res) => {
+  const { code, lang, questionId } = req.body;
+
+  if (!code || !lang || !questionId) {
+    return res.status(400).json({ error: "Code, language, and question ID are required" });
   }
 
-  let command = '';
-  switch (lang) {
-    case 'python':
-      command = `python -c "${code.replace(/"/g, '\\"')}"`;
-      break;
-    case 'javascript':
-      command = `node -e "${code.replace(/"/g, '\\"')}"`;
-      break;
-    default:
-      return res.status(400).json({ error: 'Unsupported language' });
-  }
+  try {
+    const question = await Question.findById(questionId);
+    if (!question) {
+      return res.status(404).json({ error: "Question not found" });
+    }
 
-  exec(command, (error, stdout, stderr) => {
-    const submission = new CodeSubmission({
-      code,
-      lang,
-      input,
-      output: stdout,
-      error: error ? error.message : stderr,
-    });
+    let testCaseResults = [];
+    let passedTestCases = 0;
+    let tempFilePath = lang === "python" ? "temp_code.py" : "Main.java";
 
-    submission.save()
-      .then(() => {
-        res.json({
-          stdout,
-          stderr,
-          compile_output: 'Compilation successful',
-          status: 'completed'
+    // ✅ Save code to a temporary file
+    await fs.writeFile(tempFilePath, code, "utf8");
+
+    // 🔹 If Java, compile first
+    if (lang === "java") {
+      await new Promise((resolve, reject) => {
+        const compileProcess = spawn("javac", [tempFilePath]); // Compile Java
+        compileProcess.on("close", (code) => {
+          if (code !== 0) reject("Java compilation failed.");
+          else resolve();
         });
-      })
-      .catch((err) => res.status(500).json({ error: 'Failed to save to database', details: err }));
-  });
-});
+      });
+    }
 
+    for (const testCase of question.testCases) {
+      let command, args;
+
+      if (lang === "python") {
+        command = "python";
+        args = [tempFilePath];
+      } else if (lang === "java") {
+        command = "java";
+        args = ["Main"];
+      } else {
+        return res.status(400).json({ error: "Unsupported language" });
+      }
+
+      const process = spawn(command, args);
+
+      process.stdin.write(testCase.input + "\n"); // Pass input via stdin
+      process.stdin.end();
+
+      let output = "";
+      process.stdout.on("data", (data) => {
+        output += data.toString().trim();
+      });
+
+      await new Promise((resolve) => process.on("close", resolve));
+
+      console.log("Test Case Input:", testCase.input);
+      console.log("Expected Output:", testCase.expectedOutput);
+      console.log("Actual Output:", output);
+
+      let passed = output === String(testCase.expectedOutput).trim();
+      testCaseResults.push({
+        input: testCase.input,
+        expectedOutput: testCase.expectedOutput,
+        actualOutput: output,
+        passed,
+      });
+
+      if (passed) passedTestCases++;
+      if (passedTestCases >= 2) break; // Stop early if two test cases pass
+    }
+
+    // ✅ Clean up files
+    await fs.unlink(tempFilePath).catch(() => {}); 
+    if (lang === "java") await fs.unlink("Main.class").catch(() => {}); // Delete compiled Java class
+
+    // ✅ Return result
+    if (passedTestCases >= 2) {
+      const submission = new CodeSubmission({ code, lang, output: "Test cases passed", questionId });
+      await submission.save();
+      return res.json({ message: "✅ Code passed test cases and stored in DB.", status: "success", testCaseResults });
+    }
+
+    res.json({ message: "❌ Code failed test cases.", status: "fail", testCaseResults });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 
 //Add Question (Admin Only)

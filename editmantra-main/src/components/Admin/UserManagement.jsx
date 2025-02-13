@@ -107,7 +107,7 @@ function UserManagement() {
                     <th className="border border-gray-300 p-3">Email</th>
                     <th className="border border-gray-300 p-3">Role</th>
                     <th className="border border-gray-300 p-3">Stars</th>
-                    <th className="border border-gray-300 p-3">Review</th>
+                    <th className="border border-gray-300 p-3">Points</th>
                     <th className="border border-gray-300 p-3">Feedback</th>
                     <th className="border border-gray-300 p-3">Actions</th>
                   </tr>
@@ -121,7 +121,7 @@ function UserManagement() {
                         <td className="border border-gray-300 p-3">{user.email}</td>
                         <td className="border border-gray-300 p-3">{user.role}</td>
                         <td className="border border-gray-300 p-3">{user.stars || 0}</td>
-                        <td className="border border-gray-300 p-3">{user.review || 'No Review'}</td>
+                        <td className="border border-gray-300 p-3">{user.points || 0}</td>
                         <td className="border border-gray-300 p-3">{user.feedback || 'No Feedback'}</td>
                         <td className="border border-gray-300 p-3 space-x-2">
                           <button
@@ -204,11 +204,11 @@ function UserManagement() {
                   />
                 </div>
                 <div className="mb-1">
-                  <label className="block text-gray-700 font-bold mb-2">Review</label>
+                  <label className="block text-gray-700 font-bold mb-2">Points</label>
                   <input
                     type="text"
-                    value={editingUser.review || ''}
-                    onChange={(e) => setEditingUser({ ...editingUser, review: e.target.value })}
+                    value={editingUser.points || 0 }
+                    onChange={(e) => setEditingUser({ ...editingUser, points: e.target.value })}
                     className="w-full p-1 border border-gray-300 rounded"
                   />
                 </div>

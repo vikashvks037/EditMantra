@@ -9,7 +9,7 @@ function Header() {
   const isActive = (path) => location.pathname.split("?")[0] === path;
 
   return (
-    <header className="w-full p-2 bg-cyan-50 shadow-md flex justify-between items-center">
+    <header className="w-full p-4 bg-cyan-50 shadow-md flex justify-between items-center">
       {/* Logo */}
       <Link
         to="/Home"
@@ -53,6 +53,17 @@ function Header() {
           onClick={() => setMenuOpen(false)}
         >
           Profile
+        </Link>
+        <Link
+          to="/Leaderboard"
+          className={`text-xl font-semibold px-4 py-2 md:px-0 ${
+            isActive("/Leaderboard")
+              ? "text-blue-600 underline"
+              : "text-cyan-900 hover:text-blue-400 hover:underline"
+          }`}
+          onClick={() => setMenuOpen(false)}
+        >
+          Leaderboard
         </Link>
         <Link
           to="/Home/About"
