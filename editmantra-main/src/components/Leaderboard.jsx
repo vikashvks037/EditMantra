@@ -9,7 +9,7 @@ const Leaderboard = () => {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/users");
+        const response = await fetch("https://editmantra-backend.onrender.com/api/users");
         if (!response.ok) throw new Error("Failed to fetch leaderboard data");
 
         const data = await response.json();
