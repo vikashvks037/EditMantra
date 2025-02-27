@@ -68,12 +68,26 @@ const Collaboration = () => {
       {/* Header at the Top */}
       <Header />
 
-      {/* Main Content - Flex Grow to fill space */}
-      <main className="flex-1 p-5 relative">
-        {/* Review Button (Top Right) */}
+      {/* Review Button for Small Screens */}
+      <div className="md:hidden flex justify-center mt-4">
         <button
           onClick={handleReviewClick}
-          className="absolute top-5 right-5 px-4 py-2 text-white font-bold text-lg bg-gradient-to-r from-purple-500 to-pink-500 
+          className="w-full max-w-xs px-4 py-2 text-white font-bold text-lg bg-gradient-to-r from-purple-500 to-pink-500 
+                     rounded-lg shadow-lg transform hover:scale-105 transition-all"
+          style={{
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19)",
+          }}
+        >
+          Paste Code here for Review 🚀
+        </button>
+      </div>
+
+      {/* Main Content - Flex Grow to fill space */}
+      <main className="flex-1 p-5 relative">
+        {/* Review Button for Large Screens */}
+        <button
+          onClick={handleReviewClick}
+          className="hidden md:block absolute top-5 right-5 px-4 py-2 text-white font-bold text-lg bg-gradient-to-r from-purple-500 to-pink-500 
                      rounded-lg shadow-lg transform hover:scale-105 transition-all"
           style={{
             boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19)",
@@ -100,24 +114,13 @@ const Collaboration = () => {
         {/* Side-by-Side Layout for Code Editor & Output */}
         <div className="flex flex-col md:flex-row gap-6">
           {/* Code Editor Section */}
-          <div className="w-full md:w-1/2">
-            <h4 className="text-lg font-semibold">Code Editor:</h4>
+          <div className="w-full md:w-full">
             <CodeMirror
               value={code}
               height="300px"
               theme={dracula}
               extensions={[language === "python" ? python() : java()]}
               onChange={(value) => setCode(value)}
-            />
-          </div>
-
-          {/* Output Section */}
-          <div className="w-full md:w-1/2">
-            <h4 className="text-lg font-semibold">Output:</h4>
-            <textarea
-              value={output}
-              readOnly
-              className="w-full h-[300px] p-2 bg-purple-100 border rounded"
             />
           </div>
         </div>
