@@ -1,8 +1,5 @@
 # Click Here To Explore My Website EditMantra
-<<<<<<< HEAD
-=======
 
->>>>>>> b45b977 (basic update)
 https://editmantra-frontend.onrender.com
 
 **EditMantra** is a real-time collaborative coding platform designed to enhance computer science education through interactive learning and gamification. It allows users to code together in real-time, participate in coding challenges, and earn rewards. The platform integrates an online code compiler, a code evaluation service, and features such as user authentication and real-time collaboration.
