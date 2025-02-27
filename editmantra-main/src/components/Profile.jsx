@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 import Header from "./Header";
 import Footer from "./Footer";
 
@@ -68,13 +59,6 @@ const Profile = () => {
     );
   }
 
-  // Dummy 30-day data for Stars and Points
-  const chartData = Array.from({ length: 30 }, (_, i) => ({
-    day: `Day ${i + 1}`,
-    stars: Math.floor(Math.random() * 5) + 1, // Replace with real data
-    points: Math.floor(Math.random() * 100), // Replace with real data
-  }));
-
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-200">
       <Header />
@@ -106,23 +90,6 @@ const Profile = () => {
               Logout
             </button>
           </div>
-        </div>
-
-        {/* Chart Section */}
-        <div className="w-full md:w-[50%] bg-white p-6 shadow-2xl rounded-lg border-t-4 border-green-500">
-          <h2 className="text-xl font-semibold text-center text-green-700 mb-4">
-            30-Day Stars & Points Trend
-          </h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="day" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="stars" stroke="#FFD700" strokeWidth={2} />
-              <Line type="monotone" dataKey="points" stroke="#8884d8" strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
         </div>
       </div>
       <Footer />

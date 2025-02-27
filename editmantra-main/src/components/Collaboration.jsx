@@ -1,13 +1,16 @@
 import React, { useState } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { python } from "@codemirror/lang-python";
-import { java } from "@codemirror/lang-java"; // Java support
+import { java } from "@codemirror/lang-java";
 import { dracula } from "@uiw/codemirror-theme-dracula";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import Header from "./Header";
+import Footer from "./Footer";
 
 const Collaboration = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { challenge } = location.state || {};
 
   const [code, setCode] = useState(""); // Default code
@@ -21,7 +24,6 @@ const Collaboration = () => {
   // Placeholder code for Python & Java
   const placeholders = {
     python: `# Python Starter Code\n\ndef main():\n    print("Hello, Python!")\n\nif __name__ == "__main__":\n    main()`,
-    
     java: `// Java Starter Code\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, Java!");\n    }\n}`
   };
 
@@ -39,7 +41,7 @@ const Collaboration = () => {
       const response = await axios.post("https://editmantra-backend.onrender.com/compile", {
         code,
         lang: language,
-        questionId: challenge._id, // Ensure question ID is passed
+        questionId: challenge._id,
       });
 
       if (response.data.status === "success") {
@@ -48,9 +50,7 @@ const Collaboration = () => {
         setOutput("❌ Code failed test cases.");
       }
 
-      // Update test case results
       setTestCases(response.data.testCaseResults || []);
-
     } catch (error) {
       setOutput("Error: Unable to execute code.");
     } finally {
@@ -58,62 +58,97 @@ const Collaboration = () => {
     }
   };
 
+  // Navigate to Review Page
+  const handleReviewClick = () => {
+    navigate("/Dashboard/AdminRealTimeCollaboration/Review", { state: { code, language } });
+  };
+
   return (
-    <div className="min-h-screen p-5 bg-gray-300">
-      <h3 className="text-2xl font-semibold">{challenge.title}</h3>
-      <p className="text-xl">{challenge.description}</p>
+    <div className="flex flex-col min-h-screen bg-gray-300">
+      {/* Header at the Top */}
+      <Header />
 
-      {/* Language Selection */}
-      <div className="mt-4 mb-4">
-        <select
-          value={language}
-          onChange={handleLanguageChange}
-          className="p-2 border rounded"
+      {/* Main Content - Flex Grow to fill space */}
+      <main className="flex-1 p-5 relative">
+        {/* Review Button (Top Right) */}
+        <button
+          onClick={handleReviewClick}
+          className="absolute top-5 right-5 px-4 py-2 text-white font-bold text-lg bg-gradient-to-r from-purple-500 to-pink-500 
+                     rounded-lg shadow-lg transform hover:scale-105 transition-all"
+          style={{
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19)",
+          }}
         >
-          <option value="python">Python</option>
-          <option value="java">Java</option>
-        </select>
-      </div>
+          Paste Code here for Review 🚀
+        </button>
 
-      {/* Code Editor */}
-      <CodeMirror
-        value={code}
-        height="300px"
-        theme={dracula}
-        extensions={[language === "python" ? python() : java()]} // Switch between Python & Java
-        onChange={(value) => setCode(value)}
-      />
+        <h3 className="text-2xl font-semibold text-blue-800">{challenge.title}</h3>
+        <p className="text-xl text-cyan-600">{challenge.description}</p>
 
-      {/* Submit Button */}
-      <button
-        onClick={handleSubmit}
-        className="mt-4 p-2 bg-blue-500 text-white rounded"
-        disabled={isLoading}
-      >
-        {isLoading ? "Running..." : "Submit"}
-      </button>
-
-      {/* Output Area */}
-      <textarea
-        value={output}
-        readOnly
-        className="w-full mt-4 p-2 bg-gray-100 border rounded"
-      />
-
-      {/* Test Case Results */}
-      {testCases.length > 0 && (
-        <div className="bg-white p-4 rounded shadow mt-4">
-          <h4 className="font-semibold">Test Case Results:</h4>
-          {testCases.map((test, index) => (
-            <div key={index} className="mt-2 p-2 border rounded">
-              <p><strong>Test Case {index + 1}:</strong> {test.passed ? "✅ Passed" : "❌ Failed"}</p>
-              <p><strong>Input:</strong> {test.input}</p>
-              <p><strong>Expected Output:</strong> {test.expectedOutput}</p>
-              <p><strong>Actual Output:</strong> {test.actualOutput || "No Output"}</p>
-            </div>
-          ))}
+        {/* Language Selection */}
+        <div className="mt-4 mb-4 font-bold text-purple-500 ">
+          <select
+            value={language}
+            onChange={handleLanguageChange}
+            className="p-2 border rounded cursor-pointer"
+          >
+            <option value="python">Python</option>
+            <option value="java">Java</option>
+          </select>
         </div>
-      )}
+
+        {/* Side-by-Side Layout for Code Editor & Output */}
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Code Editor Section */}
+          <div className="w-full md:w-1/2">
+            <h4 className="text-lg font-semibold">Code Editor:</h4>
+            <CodeMirror
+              value={code}
+              height="300px"
+              theme={dracula}
+              extensions={[language === "python" ? python() : java()]}
+              onChange={(value) => setCode(value)}
+            />
+          </div>
+
+          {/* Output Section */}
+          <div className="w-full md:w-1/2">
+            <h4 className="text-lg font-semibold">Output:</h4>
+            <textarea
+              value={output}
+              readOnly
+              className="w-full h-[300px] p-2 bg-purple-100 border rounded"
+            />
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <button
+          onClick={handleSubmit}
+          className="mt-4 p-2 bg-purple-500 text-white rounded"
+          disabled={isLoading}
+        >
+          {isLoading ? "Running..." : "Submit"}
+        </button>
+
+        {/* Test Case Results */}
+        {testCases.length > 0 && (
+          <div className="bg-purple-50 p-4 rounded shadow mt-4">
+            <h4 className="font-semibold">Test Case Results:</h4>
+            {testCases.map((test, index) => (
+              <div key={index} className="mt-2 p-2 border rounded">
+                <p><strong>Test Case {index + 1}:</strong> {test.passed ? "✅ Passed" : "❌ Failed"}</p>
+                <p><strong>Input:</strong> {test.input}</p>
+                <p><strong>Expected Output:</strong> {test.expectedOutput}</p>
+                <p><strong>Actual Output:</strong> {test.actualOutput || "No Output"}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
+
+      {/* Footer at the Bottom */}
+      <Footer />
     </div>
   );
 };

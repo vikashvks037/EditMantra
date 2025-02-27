@@ -46,8 +46,8 @@ function Home() {
             onClick={() => handleRedirect('/Gamification')} 
             className="bg-white p-6 rounded-2xl shadow-lg hover:scale-105 transition-transform cursor-pointer hover:shadow-xl flex flex-col items-center text-center">
             <img src="/Gamification.jpg" alt="Coding Questions" className="w-24 h-24 rounded-full border-4 border-blue-400 mb-4" />
-            <h3 className="text-2xl font-semibold text-gray-800">Coding Questions</h3>
-            <p className="text-gray-600 mt-2">Solve problems and Improve Skills</p>
+            <h3 className="text-2xl font-semibold text-gray-800">Code and Feedback</h3>
+            <p className="text-gray-600 mt-2">Solve problems & Check feedback</p>
           </div>
 
           {/* MCQ Questions Card */}

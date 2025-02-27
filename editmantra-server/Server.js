@@ -14,6 +14,7 @@ const User = require('./models/User'); // Ensure path correctness
 const Admin = require('./models/Admin'); // Ensure path correctness
 const Question = require('./models/Question');
 const MCQQuestion = require('./models/mcqQuestion');
+const aiRoutes = require('./routes/ai.routes')
 
 
 
@@ -75,6 +76,7 @@ app.use(cors({
 app.use(bodyParser.json());  // For parsing incoming JSON requests
 app.use(helmet());  // Security middleware to set various HTTP headers
 app.use(morgan('dev'));  // Logs HTTP requests for easier debugging
+app.use('/ai', aiRoutes)
 
 
 // Rate Limiting: Limiting requests to avoid abuse

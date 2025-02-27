@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import Header from "./Header";
 import Footer from "./Footer";
 
@@ -50,37 +49,6 @@ const Leaderboard = () => {
               ))}
             </tbody>
           </table>
-        </div>
-
-        {/* Charts Section */}
-        <div className="flex gap-10 mt-8 w-full max-w-4xl">
-          {/* Stars Distribution */}
-          <div className="w-1/2 bg-white p-4 shadow-2xl rounded-lg border-t-4 border-blue-500">
-            <h2 className="text-xl font-semibold text-center text-blue-700 mb-3">Stars Distribution</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={leaderboardData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis domain={[0, 5]} />
-                <Tooltip />
-                <Bar dataKey="stars" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Points Distribution */}
-          <div className="w-1/2 bg-white p-4 shadow-2xl rounded-lg border-t-4 border-green-500">
-            <h2 className="text-xl font-semibold text-center text-green-700 mb-3">Points Distribution</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={leaderboardData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis domain={[0, 100]} />
-                <Tooltip />
-                <Line type="monotone" dataKey="points" stroke="#82ca9d" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
         </div>
       </div>
       <Footer />
