@@ -59,16 +59,12 @@ const Signup = () => {
             <h2 className="text-2xl font-bold text-blue-700 text-center mb-6 mt-5">
               Welcome to EditMantra
             </h2>
-            <p className="text-gray-700 text-md text-center">
-              EditMantra is a platform for real-time collaborative coding and learning.
-              Create a room, invite multiple users, and work on the same code together.
-              Solve quiz challenges and coding questions to enhance your skills!
-            </p>
             <ul className="list-disc pl-6 text-gray-600 mt-8 text-md">
               <li>🖥️ Live coding collaboration</li>
               <li>🏆 Quiz and coding Questions</li>
-              <li>📚 Find best books for learning</li>
+              <li>📚 Code Review Using AI</li>
               <li>🔐 Secure login system</li>
+              <li>📚 Find best books for learning</li>
             </ul>
           </div>
 
