@@ -61,8 +61,15 @@ const Editor = ({ roomId }) => {
     // Emit code changes on editor change
     editorRef.current.on("change", (instance) => {
       const newCode = instance.getValue();
-      setCode(newCode); // Track the code change locally
-      setIsLocalChange(true);
+      if (newCode !== code) {
+        const cursor = instance.getCursor(); // Preserve cursor position
+        setCode(newCode); // Track the code change locally
+        setIsLocalChange(true);
+
+        setTimeout(() => {
+          instance.setCursor(cursor); // Restore cursor position
+        }, 0);
+      }
     });
 
     return () => {
@@ -74,7 +81,7 @@ const Editor = ({ roomId }) => {
   useEffect(() => {
     if (isLocalChange) {
       socket.emit(ACTIONS.CODE_CHANGE, { roomId, code });
-      setIsLocalChange(false); // Reset the local change flag
+      setTimeout(() => setIsLocalChange(false), 100); // Reset local change flag after small delay
     }
   }, [code, roomId, isLocalChange]);
 
@@ -84,8 +91,13 @@ const Editor = ({ roomId }) => {
 
     socket.on(ACTIONS.CODE_CHANGE, ({ code: newCode }) => {
       if (newCode !== editorRef.current.getValue()) {
+        const cursor = editorRef.current.getCursor(); // Save cursor position
         editorRef.current.setValue(newCode);
-        setCode(newCode); // Update the local code state if different from the editor
+        setCode(newCode);
+
+        setTimeout(() => {
+          editorRef.current.setCursor(cursor); // Restore cursor position
+        }, 0);
       }
     });
 
