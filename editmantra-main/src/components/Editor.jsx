@@ -83,6 +83,7 @@ const Editor = ({ roomId }) => {
     socket.emit(ACTIONS.JOIN_ROOM, { roomId });
 
     socket.on(ACTIONS.CODE_CHANGE, ({ code: newCode }) => {
+      // Avoid resetting the editor's value if the code is the same
       if (newCode !== editorRef.current.getValue()) {
         editorRef.current.setValue(newCode);
         setCode(newCode);
@@ -217,6 +218,3 @@ const Editor = ({ roomId }) => {
 };
 
 export default Editor;
-
-
-
