@@ -93,7 +93,15 @@ const Editor = ({ roomId }) => {
 
     socket.on(ACTIONS.CODE_CHANGE, ({ code: newCode }) => {
       if (newCode !== editorRef.current.getValue()) {
+        // Save the current cursor position
+        const cursor = editorRef.current.getCursor();
+        const selection = editorRef.current.getSelection();
+
         editorRef.current.setValue(newCode);
+
+        // Restore the cursor position and selection after updating the content
+        editorRef.current.setCursor(cursor);
+        editorRef.current.setSelection(selection);
         setCode(newCode); // Update state if the code is different
       }
     });
@@ -226,4 +234,5 @@ const Editor = ({ roomId }) => {
 };
 
 export default Editor;
+
 
