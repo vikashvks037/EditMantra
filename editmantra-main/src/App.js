@@ -52,7 +52,6 @@ function App() {
                     <Route path="/Dashboard/ViewModifyQuestion" element={<ViewModifyQuestion />} />
                     <Route path="/Dashboard/AdminRealTimeCollaboration/Editor/:roomId" element={<AdminEditorPage />} />
                     <Route path="/Dashboard/AdminRealTimeCollaboration" element={<AdminRealTimeCollaboration />} />
-                    <Route path="/Dashboard/AdminRealTimeCollaboration/Review" element={<Review />} />
 
 
 
@@ -61,6 +60,8 @@ function App() {
                     <Route path="/RealTimeCollaboration/editor/:roomId"element={<EditorPage />}></Route>
                     <Route path="/Gamification" element={<Gamification />} />
                     <Route path="/Gamification/Collaboration" element={<Collaboration />} />
+                    <Route path="/Dashboard/Collaboration/Review" element={<Review />} />
+
 
                     {/* Learning Resources */}
                     <Route path="/LearningResources" element={<LearningResources />} />
