@@ -84,7 +84,7 @@ const Editor = ({ roomId }) => {
     socket.on(ACTIONS.CODE_CHANGE, ({ code: newCode }) => {
       if (newCode !== editorRef.current.getValue()) {
         editorRef.current.setValue(newCode);
-        setCode(newCode);
+        setCode(newCode); // Update state if the code is different
       }
     });
 
@@ -93,7 +93,7 @@ const Editor = ({ roomId }) => {
     };
   }, [roomId]);
 
-  // Auto-update editor content every 3 seconds
+  // Auto-update editor content every 1 second if the code changes
   useEffect(() => {
     const interval = setInterval(() => {
       if (editorRef.current && editorRef.current.getValue() !== code) {
