@@ -4,7 +4,7 @@ function Footer() {
   return (
     <footer className="bg-gray-900 text-white w-full shadow-md mt-auto">
       <div className="flex flex-col items-center text-center">
-        <div className="flex space-x-6 mt-3 mb-1">
+        <div className="flex space-x-6 mt-3 mb-3">
           <a 
             href="https://www.instagram.com/vikash_vks037" 
             target="_blank" 
