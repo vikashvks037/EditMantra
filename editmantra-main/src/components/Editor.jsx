@@ -42,7 +42,6 @@ const Editor = ({ roomId }) => {
   const [code, setCode] = useState(defaultCode["htmlmixed"]);
   const [consoleOutput, setConsoleOutput] = useState([]); // Store console logs
   const [isLocalChange, setIsLocalChange] = useState(false); // Track local changes
-  const [typingTimeout, setTypingTimeout] = useState(null); // Timeout ID for debounce
 
   // Initialize CodeMirror editor
   useEffect(() => {
@@ -59,33 +58,25 @@ const Editor = ({ roomId }) => {
 
     editorRef.current.setValue(code);
 
+    // Emit code changes on editor change
     editorRef.current.on("change", (instance) => {
       const newCode = instance.getValue();
       setCode(newCode);
       setIsLocalChange(true);
-
-      // Clear previous timeout if there's a change
-      if (typingTimeout) {
-        clearTimeout(typingTimeout);
-      }
-
-      // Set a new timeout to send code after 3 seconds of inactivity
-      const timeoutId = setTimeout(() => {
-        // Emit code changes to the socket after the delay
-        socket.emit(ACTIONS.CODE_CHANGE, { roomId, code: newCode });
-        setIsLocalChange(false);
-      }, 3000);
-
-      setTypingTimeout(timeoutId); // Save timeout ID to clear it on subsequent changes
     });
 
     return () => {
       editorRef.current?.toTextArea();
-      if (typingTimeout) {
-        clearTimeout(typingTimeout); // Clear timeout on component unmount
-      }
     };
-  }, [language, code, typingTimeout]);
+  }, [language]);
+
+  // Emit code changes to the socket
+  useEffect(() => {
+    if (isLocalChange) {
+      socket.emit(ACTIONS.CODE_CHANGE, { roomId, code });
+      setIsLocalChange(false);
+    }
+  }, [code, roomId, isLocalChange]);
 
   // Handle socket updates
   useEffect(() => {
@@ -93,16 +84,8 @@ const Editor = ({ roomId }) => {
 
     socket.on(ACTIONS.CODE_CHANGE, ({ code: newCode }) => {
       if (newCode !== editorRef.current.getValue()) {
-        // Save the current cursor position
-        const cursor = editorRef.current.getCursor();
-        const selection = editorRef.current.getSelection();
-
         editorRef.current.setValue(newCode);
-
-        // Restore the cursor position and selection after updating the content
-        editorRef.current.setCursor(cursor);
-        editorRef.current.setSelection(selection);
-        setCode(newCode); // Update state if the code is different
+        setCode(newCode);
       }
     });
 
@@ -234,5 +217,6 @@ const Editor = ({ roomId }) => {
 };
 
 export default Editor;
+
 
 
