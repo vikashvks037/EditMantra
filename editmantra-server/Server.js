@@ -87,7 +87,6 @@ const limiter = rateLimit({
 app.use(limiter);
 
 
-// Define the ACTIONS object
 const ACTIONS = {
   JOIN: "join",
   JOINED: "joined",
@@ -98,46 +97,39 @@ const ACTIONS = {
   LEAVE: "leave"
 };
 
-
 // A map to track users and their socket IDs
 const userSocketMap = {}; // User to socket ID map
-
 
 function getAllConnectedClients(roomId) {
   return Array.from(io.sockets.adapter.rooms.get(roomId) || []).map(
     (socketId) => {
       return {
         socketId,
-        username: userSocketMap[socketId],
+        username: userSocketMap[socketId], // get the username from the map
       };
     }
   );
 }
 
 io.on("connection", (socket) => {
-  console.log("New client connected");
+  console.log("New client connected", socket.id);
 
+  // Handle when a user joins a room
   socket.on(ACTIONS.JOIN_ROOM, ({ roomId }) => {
     socket.join(roomId);
-    console.log(`User joined room: ${roomId}`);
+    console.log(`User ${socket.id} joined room: ${roomId}`);
+    
+    // Emit sync code to the user when they join
+    socket.to(roomId).emit(ACTIONS.CODE_CHANGE, { code: 'initial code' }); // You can customize 'initial code' as needed
   });
 
-  socket.on(ACTIONS.CODE_CHANGE, ({ roomId, code }) => {
-    socket.to(roomId).emit(ACTIONS.CODE_CHANGE, { code });
-  });
-
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
-  });
-});
-
-
-io.on("connection", (socket) => {
-  console.log("socket connected", socket.id);
-
+  // Handle user joining with a username
   socket.on(ACTIONS.JOIN, ({ roomId, username }) => {
     userSocketMap[socket.id] = username;
     socket.join(roomId);
+    console.log(`${username} joined room ${roomId}`);
+
+    // Get all connected clients in the room and notify them
     const clients = getAllConnectedClients(roomId);
     clients.forEach(({ socketId }) => {
       io.to(socketId).emit(ACTIONS.JOINED, {
@@ -147,6 +139,13 @@ io.on("connection", (socket) => {
       });
     });
   });
+
+  // Handle code change from one client
+  socket.on(ACTIONS.CODE_CHANGE, ({ roomId, code }) => {
+    socket.to(roomId).emit(ACTIONS.CODE_CHANGE, { code });
+  });
+
+  // Handle when a user disconnects
   socket.on("disconnecting", () => {
     const rooms = Array.from(socket.rooms);
     rooms.forEach((roomId) => {
@@ -156,7 +155,15 @@ io.on("connection", (socket) => {
       });
       socket.leave(roomId);
     });
+    
+    // Clean up userSocketMap when user disconnects
     delete userSocketMap[socket.id];
+    console.log(`${socket.id} disconnected and removed from the userSocketMap`);
+  });
+
+  // Handle socket disconnect
+  socket.on("disconnect", () => {
+    console.log(`Socket ${socket.id} has been disconnected`);
   });
 });
 
