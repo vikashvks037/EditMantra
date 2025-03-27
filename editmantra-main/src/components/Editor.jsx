@@ -40,7 +40,7 @@ const Editor = ({ roomId }) => {
   const editorRef = useRef(null);
   const [language, setLanguage] = useState("htmlmixed");
   const [code, setCode] = useState(defaultCode["htmlmixed"]);
-  const [consoleOutput, setConsoleOutput] = useState([]); // Store console logs
+  const [consoleOutput, setConsoleOutput] = useState([]);
   const [isLocalChange, setIsLocalChange] = useState(false); // Track local changes
 
   // Initialize CodeMirror editor
@@ -61,7 +61,7 @@ const Editor = ({ roomId }) => {
     // Emit code changes on editor change
     editorRef.current.on("change", (instance) => {
       const newCode = instance.getValue();
-      setCode(newCode);
+      setCode(newCode); // Track the code change locally
       setIsLocalChange(true);
     });
 
@@ -74,7 +74,7 @@ const Editor = ({ roomId }) => {
   useEffect(() => {
     if (isLocalChange) {
       socket.emit(ACTIONS.CODE_CHANGE, { roomId, code });
-      setIsLocalChange(false);
+      setIsLocalChange(false); // Reset the local change flag
     }
   }, [code, roomId, isLocalChange]);
 
@@ -83,10 +83,9 @@ const Editor = ({ roomId }) => {
     socket.emit(ACTIONS.JOIN_ROOM, { roomId });
 
     socket.on(ACTIONS.CODE_CHANGE, ({ code: newCode }) => {
-      // Avoid resetting the editor's value if the code is the same
       if (newCode !== editorRef.current.getValue()) {
         editorRef.current.setValue(newCode);
-        setCode(newCode);
+        setCode(newCode); // Update the local code state if different from the editor
       }
     });
 
