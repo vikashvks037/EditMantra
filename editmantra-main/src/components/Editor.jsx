@@ -99,7 +99,7 @@ const Editor = ({ roomId }) => {
       if (editorRef.current && editorRef.current.getValue() !== code) {
         editorRef.current.setValue(code);
       }
-    }, 3000);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [code]);
