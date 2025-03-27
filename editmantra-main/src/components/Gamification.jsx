@@ -42,9 +42,6 @@ const Gamification = () => {
         {showQuestions && (
           <div className="w-full mt-8 p-4 bg-white rounded-lg shadow-xl text-gray-900">
             <h2 className="text-3xl font-bold mb-4">Solve These Challenges 🔥</h2>
-            <p className="text-lg mb-6">
-              Test your skills by solving the coding questions below. Think logically and enjoy the challenge!
-            </p>
             <Questions />
           </div>
         )}
