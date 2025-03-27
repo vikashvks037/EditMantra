@@ -30,7 +30,7 @@ function Footer() {
             🐙 GitHub
           </a>
         </div>
-        <p className="text-sm mb-2 flex font-semibold items-center text-gray-400 space-x-1">Developed by ❤️ <span className="font-bold "> Vikash Kumar</span> ✨</p>
+{/*         <p className="text-sm mb-2 flex font-semibold items-center text-gray-400 space-x-1">Developed by ❤️ <span className="font-bold "> Vikash Kumar</span> ✨</p> */}
       </div>
     </footer>
   );
