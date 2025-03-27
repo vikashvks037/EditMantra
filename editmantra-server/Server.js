@@ -86,7 +86,6 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-
 const ACTIONS = {
   JOIN: "join",
   JOINED: "joined",
@@ -94,7 +93,7 @@ const ACTIONS = {
   CODE_CHANGE: "code-change",
   SYNC_CODE: "sync-code",
   JOIN_ROOM: "join-room",
-  LEAVE: "leave"
+  LEAVE: "leave",
 };
 
 // A map to track users and their socket IDs
@@ -102,26 +101,15 @@ const userSocketMap = {}; // User to socket ID map
 
 function getAllConnectedClients(roomId) {
   return Array.from(io.sockets.adapter.rooms.get(roomId) || []).map(
-    (socketId) => {
-      return {
-        socketId,
-        username: userSocketMap[socketId], // get the username from the map
-      };
-    }
+    (socketId) => ({
+      socketId,
+      username: userSocketMap[socketId], // Get the username from the map
+    })
   );
 }
 
 io.on("connection", (socket) => {
   console.log("New client connected", socket.id);
-
-  // Handle when a user joins a room
-  socket.on(ACTIONS.JOIN_ROOM, ({ roomId }) => {
-    socket.join(roomId);
-    console.log(`User ${socket.id} joined room: ${roomId}`);
-    
-    // Emit sync code to the user when they join
-    socket.to(roomId).emit(ACTIONS.CODE_CHANGE, { code: 'initial code' }); // You can customize 'initial code' as needed
-  });
 
   // Handle user joining with a username
   socket.on(ACTIONS.JOIN, ({ roomId, username }) => {
@@ -129,7 +117,7 @@ io.on("connection", (socket) => {
     socket.join(roomId);
     console.log(`${username} joined room ${roomId}`);
 
-    // Get all connected clients in the room and notify them
+    // Notify all clients in the room about the new user
     const clients = getAllConnectedClients(roomId);
     clients.forEach(({ socketId }) => {
       io.to(socketId).emit(ACTIONS.JOINED, {
@@ -138,6 +126,9 @@ io.on("connection", (socket) => {
         socketId: socket.id,
       });
     });
+
+    // Emit sync code to the user when they join
+    socket.to(roomId).emit(ACTIONS.CODE_CHANGE, { code: 'initial code' }); // Customize initial code as needed
   });
 
   // Handle code change from one client
@@ -149,21 +140,15 @@ io.on("connection", (socket) => {
   socket.on("disconnecting", () => {
     const rooms = Array.from(socket.rooms);
     rooms.forEach((roomId) => {
-      socket.in(roomId).emit(ACTIONS.DISCONNECTED, {
+      socket.to(roomId).emit(ACTIONS.DISCONNECTED, {
         socketId: socket.id,
         username: userSocketMap[socket.id],
       });
-      socket.leave(roomId);
     });
-    
-    // Clean up userSocketMap when user disconnects
-    delete userSocketMap[socket.id];
-    console.log(`${socket.id} disconnected and removed from the userSocketMap`);
-  });
 
-  // Handle socket disconnect
-  socket.on("disconnect", () => {
-    console.log(`Socket ${socket.id} has been disconnected`);
+    // Remove the user from the tracking map
+    delete userSocketMap[socket.id];
+    console.log(`${socket.id} disconnected and removed from userSocketMap`);
   });
 });
 
