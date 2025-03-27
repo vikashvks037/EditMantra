@@ -42,6 +42,7 @@ const Editor = ({ roomId }) => {
   const [code, setCode] = useState(defaultCode["htmlmixed"]);
   const [consoleOutput, setConsoleOutput] = useState([]); // Store console logs
   const [isLocalChange, setIsLocalChange] = useState(false); // Track local changes
+  const [typingTimeout, setTypingTimeout] = useState(null); // Timeout ID for debounce
 
   // Initialize CodeMirror editor
   useEffect(() => {
@@ -62,20 +63,29 @@ const Editor = ({ roomId }) => {
       const newCode = instance.getValue();
       setCode(newCode);
       setIsLocalChange(true);
+
+      // Clear previous timeout if there's a change
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+      }
+
+      // Set a new timeout to send code after 3 seconds of inactivity
+      const timeoutId = setTimeout(() => {
+        // Emit code changes to the socket after the delay
+        socket.emit(ACTIONS.CODE_CHANGE, { roomId, code: newCode });
+        setIsLocalChange(false);
+      }, 3000);
+
+      setTypingTimeout(timeoutId); // Save timeout ID to clear it on subsequent changes
     });
 
     return () => {
       editorRef.current?.toTextArea();
+      if (typingTimeout) {
+        clearTimeout(typingTimeout); // Clear timeout on component unmount
+      }
     };
-  }, [language]);
-
-  // Emit code changes to the socket
-  useEffect(() => {
-    if (isLocalChange) {
-      socket.emit(ACTIONS.CODE_CHANGE, { roomId, code });
-      setIsLocalChange(false);
-    }
-  }, [code, roomId, isLocalChange]);
+  }, [language, code, typingTimeout]);
 
   // Handle socket updates
   useEffect(() => {
@@ -92,17 +102,6 @@ const Editor = ({ roomId }) => {
       socket.off(ACTIONS.CODE_CHANGE);
     };
   }, [roomId]);
-
-  // Auto-update editor content every 1 second if the code changes
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (editorRef.current && editorRef.current.getValue() !== code) {
-        editorRef.current.setValue(code);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [code]);
 
   // Handle language change
   const handleLanguageChange = (e) => {
@@ -227,3 +226,4 @@ const Editor = ({ roomId }) => {
 };
 
 export default Editor;
+
