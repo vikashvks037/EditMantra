@@ -7,14 +7,6 @@ import "codemirror/mode/htmlmixed/htmlmixed";
 import "codemirror/mode/css/css";
 import "codemirror/addon/edit/closetag";
 import "codemirror/addon/edit/closebrackets";
-import io from "socket.io-client";
-
-const ACTIONS = {
-  CODE_CHANGE: "code-change",
-  JOIN_ROOM: "join-room",
-};
-
-const socket = io("https://editmantra-backend.onrender.com"); // Replace with your backend's URL
 
 const defaultCode = {
   htmlmixed: `<!DOCTYPE html>
@@ -36,12 +28,11 @@ const defaultCode = {
   javascript: `console.log('Hello, World!');`,
 };
 
-const Editor = ({ roomId }) => {
+const Editor = () => {
   const editorRef = useRef(null);
   const [language, setLanguage] = useState("htmlmixed");
   const [code, setCode] = useState(defaultCode["htmlmixed"]);
   const [consoleOutput, setConsoleOutput] = useState([]); // Store console logs
-  const [isLocalChange, setIsLocalChange] = useState(false); // Track local changes
 
   // Initialize CodeMirror editor
   useEffect(() => {
@@ -64,48 +55,28 @@ const Editor = ({ roomId }) => {
     editorRef.current.on("change", (instance) => {
       const newCode = instance.getValue();
       setCode(newCode);
-      setIsLocalChange(true);
+      // Store the updated code in localStorage to sync across tabs
+      localStorage.setItem("sharedCode", newCode);
     });
 
+    // Listen for changes in localStorage (to sync across all tabs)
+    const storageListener = (event) => {
+      if (event.key === "sharedCode") {
+        const newCode = event.newValue;
+        if (newCode && newCode !== editorRef.current.getValue()) {
+          editorRef.current.setValue(newCode);
+          setCode(newCode);
+        }
+      }
+    };
+
+    window.addEventListener("storage", storageListener);
+
     return () => {
+      window.removeEventListener("storage", storageListener);
       editorRef.current?.toTextArea();
     };
   }, [language]);
-
-  // Emit code changes to the socket
-  useEffect(() => {
-    if (isLocalChange) {
-      socket.emit(ACTIONS.CODE_CHANGE, { roomId, code });
-      setIsLocalChange(false);
-    }
-  }, [code, roomId, isLocalChange]);
-
-  // Handle socket updates
-  useEffect(() => {
-    socket.emit(ACTIONS.JOIN_ROOM, { roomId });
-
-    socket.on(ACTIONS.CODE_CHANGE, ({ code: newCode }) => {
-      if (newCode !== editorRef.current.getValue()) {
-        editorRef.current.setValue(newCode);
-        setCode(newCode);
-      }
-    });
-
-    return () => {
-      socket.off(ACTIONS.CODE_CHANGE);
-    };
-  }, [roomId]);
-
-  // Auto-update editor content every 3 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (editorRef.current && editorRef.current.getValue() !== code) {
-        editorRef.current.setValue(code);
-      }
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [code]);
 
   // Handle language change
   const handleLanguageChange = (e) => {
@@ -231,5 +202,6 @@ const Editor = ({ roomId }) => {
 };
 
 export default Editor;
+
 
 
