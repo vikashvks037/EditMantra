@@ -56,8 +56,11 @@ const Editor = ({ roomId }) => {
       }
     );
 
+    // Set the initial value and ensure focus is on the editor
     editorRef.current.setValue(code);
+    editorRef.current.focus();
 
+    // Listen for changes in the editor
     editorRef.current.on("change", (instance) => {
       const newCode = instance.getValue();
       setCode(newCode);
@@ -113,6 +116,7 @@ const Editor = ({ roomId }) => {
     if (editorRef.current) {
       editorRef.current.setOption("mode", newLanguage);
       editorRef.current.setValue(newCode);
+      editorRef.current.focus();  // Ensure focus is kept on the editor after language change
     }
   };
 
@@ -227,4 +231,5 @@ const Editor = ({ roomId }) => {
 };
 
 export default Editor;
+
 
