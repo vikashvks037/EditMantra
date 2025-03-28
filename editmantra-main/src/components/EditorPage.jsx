@@ -1,116 +1,132 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { useLocation, useNavigate, Navigate, useParams, Link } from 'react-router-dom';
 import ACTIONS from '../Actions';
+import Client from './Client';
 import Editor from './Editor';
 import { initSocket } from '../socket';
+import {
+    useLocation,
+    useNavigate,
+    Navigate,
+    useParams,
+} from 'react-router-dom';
 
 const EditorPage = () => {
     const socketRef = useRef(null);
     const codeRef = useRef(null);
     const location = useLocation();
     const { roomId } = useParams();
-    const navigate = useNavigate();
+    const reactNavigator = useNavigate();
     const [clients, setClients] = useState([]);
-    const [showAllClients, setShowAllClients] = useState(false);
 
     useEffect(() => {
-        const initializeSocket = async () => {
-            try {
-                socketRef.current = await initSocket();
+        const init = async () => {
+            socketRef.current = await initSocket();
+            socketRef.current.on('connect_error', (err) => handleErrors(err));
+            socketRef.current.on('connect_failed', (err) => handleErrors(err));
 
-                socketRef.current.on('connect_error', () => {
-                    toast.error('Socket connection failed, try again later.');
-                    navigate('/RealTimeCollaboration');
-                });
+            function handleErrors(e) {
+                console.log('socket error', e);
+                toast.error('Socket connection failed, try again later.');
+                reactNavigator('/');
+            }
 
-                socketRef.current.emit(ACTIONS.JOIN, {
-                    roomId,
-                    username: location.state?.username,
-                });
+            socketRef.current.emit(ACTIONS.JOIN, {
+                roomId,
+                username: location.state?.username,
+            });
 
-                socketRef.current.on(ACTIONS.JOINED, ({ clients, username, socketId }) => {
+            // Listening for joined event
+            socketRef.current.on(
+                ACTIONS.JOINED,
+                ({ clients, username, socketId }) => {
                     if (username !== location.state?.username) {
                         toast.success(`${username} joined the room.`);
+                        console.log(`${username} joined`);
                     }
                     setClients(clients);
-
                     socketRef.current.emit(ACTIONS.SYNC_CODE, {
                         code: codeRef.current,
                         socketId,
                     });
-                });
+                }
+            );
 
-                socketRef.current.on(ACTIONS.DISCONNECTED, ({ socketId, username }) => {
+            // Listening for disconnected
+            socketRef.current.on(
+                ACTIONS.DISCONNECTED,
+                ({ socketId, username }) => {
                     toast.success(`${username} left the room.`);
-                    setClients((prev) => prev.filter((client) => client.socketId !== socketId));
-                });
-            } catch (error) {
-                toast.error('An error occurred. Please try again later.');
-            }
+                    setClients((prev) => {
+                        return prev.filter(
+                            (client) => client.socketId !== socketId
+                        );
+                    });
+                }
+            );
         };
-
-        initializeSocket();
-
+        init();
         return () => {
-            socketRef.current?.disconnect();
+            socketRef.current.disconnect();
+            socketRef.current.off(ACTIONS.JOINED);
+            socketRef.current.off(ACTIONS.DISCONNECTED);
         };
-    }, [roomId, location.state?.username, navigate]);
+    }, []);
 
-    const copyRoomId = useCallback(async () => {
+    async function copyRoomId() {
         try {
             await navigator.clipboard.writeText(roomId);
-            toast.success('Room ID copied to clipboard');
-        } catch {
+            toast.success('Room ID has been copied to your clipboard');
+        } catch (err) {
             toast.error('Could not copy the Room ID');
+            console.error(err);
         }
-    }, [roomId]);
+    }
 
-    const leaveRoom = useCallback(() => navigate('/RealTimeCollaboration'), [navigate]);
+    function leaveRoom() {
+        reactNavigator('/');
+    }
 
-    if (!location.state) return <Navigate to="/RealTimeCollaboration" />;
+    if (!location.state) {
+        return <Navigate to="/" />;
+    }
 
     return (
-        <div className="grid grid-cols-[230px_1fr] h-screen text-white bg-gray-900">
-            <div className="bg-[#1c1e29] p-4 flex flex-col h-full">
-                <header className="w-full ml-4 p-2 shadow-md flex justify-between items-center">
-                    <Link to="/Home" className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-cyan-600 text-transparent bg-clip-text hover:from-cyan-500 hover:to-purple-500 transition duration-300 ease-in-out">
-                        EditMantra
-                    </Link>
-                </header>
-
-                <h3 className="text-lg font-bold mt-4 text-center text-green-400">Connected</h3>
-
-                <div 
-                    className="bg-[#2a2e3d] p-4 mt-4 my-3 rounded-lg cursor-pointer hover:scale-105 transition-all" 
-                    onClick={() => setShowAllClients(!showAllClients)}
-                >
-                    <p className="text-center font-bold">Clients ({clients.length})</p>
-                </div>
-
-                {showAllClients && (
-                    <div className="flex flex-wrap gap-4 flex-1 overflow-y-auto">
-                        {clients.map(({ socketId, username }) => (
-                            <div key={socketId} className="bg-[#2a2e3d] p-4 rounded-lg w-64 text-center font-bold">
-                                {username}
-                            </div>
+        <div className="mainWrap">
+            <div className="aside">
+                <div className="asideInner">
+                    <div className="logo">
+                        <img
+                            className="logoImage"
+                            src="/code-sync.png"
+                            alt="logo"
+                        />
+                    </div>
+                    <h3>Connected</h3>
+                    <div className="clientsList">
+                        {clients.map((client) => (
+                            <Client
+                                key={client.socketId}
+                                username={client.username}
+                            />
                         ))}
                     </div>
-                )}
-
-                {/* Ensure buttons stay at the bottom */}
-                <div className="mt-auto">
-                    <button className="bg-gradient-to-r from-blue-500 to-blue-700 text-white font-bold py-2 px-4 rounded mt-4 hover:scale-105 transition-all w-full" onClick={copyRoomId}>
-                        Copy Room ID
-                    </button>
-                    <button className="bg-gradient-to-r from-red-500 to-red-700 text-white font-bold py-2 px-4 rounded mt-4 hover:scale-105 transition-all w-full" onClick={leaveRoom}>
-                        Leave
-                    </button>
                 </div>
+                <button className="btn copyBtn" onClick={copyRoomId}>
+                    Copy ROOM ID
+                </button>
+                <button className="btn leaveBtn" onClick={leaveRoom}>
+                    Leave
+                </button>
             </div>
-
-            <div className="bg-[#424761]">
-                <Editor socketRef={socketRef} roomId={roomId} onCodeChange={(code) => (codeRef.current = code)} />
+            <div className="editorWrap">
+                <Editor
+                    socketRef={socketRef}
+                    roomId={roomId}
+                    onCodeChange={(code) => {
+                        codeRef.current = code;
+                    }}
+                />
             </div>
         </div>
     );
