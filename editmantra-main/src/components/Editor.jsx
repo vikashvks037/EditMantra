@@ -35,7 +35,6 @@ const Editor = () => {
   const editorRef = useRef(null);
   const [language, setLanguage] = useState("htmlmixed");
   const [code, setCode] = useState(defaultCode["htmlmixed"]);
-  const [lastValidCode, setLastValidCode] = useState(defaultCode["htmlmixed"]);  // Track the last valid input
   const [consoleOutput, setConsoleOutput] = useState([]); // Store console logs
 
   // Initialize CodeMirror editor
@@ -59,7 +58,6 @@ const Editor = () => {
     editorRef.current.on("change", (instance) => {
       const newCode = instance.getValue();
       setCode(newCode);
-      setLastValidCode(newCode); // Update the last valid code
       // Store the updated code in localStorage to sync across tabs (optional)
       localStorage.setItem("sharedCode", newCode);
     });
@@ -87,8 +85,10 @@ const Editor = () => {
   const handleLanguageChange = (e) => {
     const newLanguage = e.target.value;
     setLanguage(newLanguage);
-    const newCode = defaultCode[newLanguage];
+    // Set the code only if it hasn't been modified or the code is empty for the selected language
+    const newCode = code || defaultCode[newLanguage];  // Use existing code if available
     setCode(newCode);
+
     if (editorRef.current) {
       editorRef.current.setOption("mode", newLanguage);
       editorRef.current.setValue(newCode);
@@ -96,15 +96,11 @@ const Editor = () => {
     }
   };
 
-  // Clear editor or revert to the last valid code if cleared
+  // Clear editor
   const handleClearScreen = () => {
-    if (code === "") {
-      setCode(lastValidCode);  // Restore the last valid code if the user clears the editor
-    } else {
-      setCode("");
-    }
+    setCode("");
     if (editorRef.current) {
-      editorRef.current.setValue(code === "" ? lastValidCode : "");
+      editorRef.current.setValue("");
     }
   };
 
@@ -213,3 +209,4 @@ const Editor = () => {
 };
 
 export default Editor;
+
