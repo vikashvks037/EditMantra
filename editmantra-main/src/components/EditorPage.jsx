@@ -4,12 +4,7 @@ import ACTIONS from '../Actions';
 import Client from './Client';
 import Editor from './Editor';
 import { initSocket } from '../socket';
-import {
-    useLocation,
-    useNavigate,
-    Navigate,
-    useParams,
-} from 'react-router-dom';
+import { useLocation, useNavigate, Navigate, useParams } from 'react-router-dom';
 
 const EditorPage = () => {
     const socketRef = useRef(null);
@@ -92,34 +87,27 @@ const EditorPage = () => {
     }
 
     return (
-        <div className="mainWrap">
-            <div className="aside">
-                <div className="asideInner">
-                    <div className="logo">
-                        <img
-                            className="logoImage"
-                            src="/code-sync.png"
-                            alt="logo"
-                        />
+        <div className="grid grid-cols-[230px_1fr] min-h-screen">
+            <div className="aside bg-[#1c1e29] p-4 text-white flex flex-col">
+                <div className="asideInner flex-1">
+                    <div className="logo border-b border-[#424242] pb-2">
+                        <img className="logoImage h-15" src="/code-sync.png" alt="logo" />
                     </div>
-                    <h3>Connected</h3>
-                    <div className="clientsList">
+                    <h3 className="text-xl mt-4">Connected</h3>
+                    <div className="clientsList flex items-center flex-wrap gap-5 mt-5">
                         {clients.map((client) => (
-                            <Client
-                                key={client.socketId}
-                                username={client.username}
-                            />
+                            <Client key={client.socketId} username={client.username} />
                         ))}
                     </div>
                 </div>
-                <button className="btn copyBtn" onClick={copyRoomId}>
+                <button className="btn copyBtn bg-[#4CAF50] text-white p-2 rounded mt-4 w-full" onClick={copyRoomId}>
                     Copy ROOM ID
                 </button>
-                <button className="btn leaveBtn" onClick={leaveRoom}>
+                <button className="btn leaveBtn bg-[#f44336] text-white p-2 rounded mt-4 w-full" onClick={leaveRoom}>
                     Leave
                 </button>
             </div>
-            <div className="editorWrap">
+            <div className="editorWrap p-4">
                 <Editor
                     socketRef={socketRef}
                     roomId={roomId}
@@ -133,3 +121,4 @@ const EditorPage = () => {
 };
 
 export default EditorPage;
+
