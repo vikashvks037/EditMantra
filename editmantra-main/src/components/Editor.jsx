@@ -36,32 +36,12 @@ const defaultCode = {
   javascript: `console.log('Hello, World!');`,
 };
 
-// Debounce hook to limit the rate of function calls
-const useDebounce = (callback, delay) => {
-  const timerRef = useRef(null);
-
-  const debounce = () => {
-    clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(callback, delay);
-  };
-
-  return debounce;
-};
-
 const Editor = ({ roomId }) => {
   const editorRef = useRef(null);
   const [language, setLanguage] = useState("htmlmixed");
   const [code, setCode] = useState(defaultCode["htmlmixed"]);
-  const [consoleOutput, setConsoleOutput] = useState([]);
-  const [isLocalChange, setIsLocalChange] = useState(false);
-
-  // Create debounce function to prevent immediate code change updates
-  const debounceCodeChange = useDebounce(() => {
-    if (isLocalChange) {
-      socket.emit(ACTIONS.CODE_CHANGE, { roomId, code });
-      setIsLocalChange(false);
-    }
-  }, 1000); // Debounce time (in ms)
+  const [consoleOutput, setConsoleOutput] = useState([]); // Store console logs
+  const [isLocalChange, setIsLocalChange] = useState(false); // Track local changes
 
   // Initialize CodeMirror editor
   useEffect(() => {
@@ -82,13 +62,20 @@ const Editor = ({ roomId }) => {
       const newCode = instance.getValue();
       setCode(newCode);
       setIsLocalChange(true);
-      debounceCodeChange(); // Trigger debounce function
     });
 
     return () => {
       editorRef.current?.toTextArea();
     };
   }, [language]);
+
+  // Emit code changes to the socket
+  useEffect(() => {
+    if (isLocalChange) {
+      socket.emit(ACTIONS.CODE_CHANGE, { roomId, code });
+      setIsLocalChange(false);
+    }
+  }, [code, roomId, isLocalChange]);
 
   // Handle socket updates
   useEffect(() => {
@@ -105,6 +92,17 @@ const Editor = ({ roomId }) => {
       socket.off(ACTIONS.CODE_CHANGE);
     };
   }, [roomId]);
+
+  // Auto-update editor content every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (editorRef.current && editorRef.current.getValue() !== code) {
+        editorRef.current.setValue(code);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [code]);
 
   // Handle language change
   const handleLanguageChange = (e) => {
@@ -186,29 +184,29 @@ const Editor = ({ roomId }) => {
   const clearConsole = () => setConsoleOutput([]);
 
   return (
-    <div className="p-4 shadow-lg flex flex-col space-y-4">
-      <div className="flex items-center mb-4 font-bold">
+    <div className="p-1 shadow-lg flex-col">
+      <div className="flex mb-1 font-bold">
         <select
           value={language}
           onChange={handleLanguageChange}
-          className="p-2 mr-4 border text-center rounded-md focus:outline-none text-cyan-700 font-semibold"
+          className="p-1 mr-2 border text-center rounded-sm focus:outline-none text-cyan-700 font-bold"
         >
           <option value="htmlmixed">HTML</option>
           <option value="css">CSS</option>
           <option value="javascript">JavaScript</option>
         </select>
 
-        <div className="flex space-x-4 ml-auto">
-          <button onClick={handleViewResult} className="px-4 py-2 bg-pink-500 text-white rounded-md hover:bg-pink-700">
+        <div className="flex space-x-6 ml-96">
+          <button onClick={handleViewResult} className="px-4 py-2 bg-pink-500 text-white rounded-sm hover:bg-pink-700">
             View Result
           </button>
-          <button onClick={handleConsoleOutput} className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-800">
+          <button onClick={handleConsoleOutput} className="px-4 py-2 bg-cyan-600 text-white rounded-sm hover:bg-cyan-800">
             Console Output
           </button>
-          <button onClick={clearConsole} className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-500">
+          <button onClick={clearConsole} className="px-4 py-2 bg-purple-600 text-white rounded-sm hover:bg-purple-500">
             Clear Console
           </button>
-          <button onClick={handleClearScreen} className="px-4 py-2 bg-red-700 text-white rounded-md hover:bg-red-900">
+          <button onClick={handleClearScreen} className="px-4 py-2 bg-red-700 text-white rounded-sm hover:bg-red-900">
             Clear Screen
           </button>
         </div>
@@ -216,22 +214,17 @@ const Editor = ({ roomId }) => {
 
       <textarea id="realtimeEditor" className="w-full h-72 text-base font-mono text-white bg-transparent border-2 focus:outline-none transition-all"></textarea>
 
-      <div className="flex w-full mt-4 space-x-4">
-        <div className="w-1/2 p-4 bg-gray-700 text-white h-72 overflow-y-auto">
-          <h3 className="text-lg font-semibold mb-2">Console Output:</h3>
-          <ul className="text-sm space-y-2">
-            {consoleOutput.map((line, index) => <li key={index}>{line}</li>)}
-          </ul>
+      <div className="flex w-full">
+        <div className="w-1/2 p-2 bg-gray-700 text-white h-72 overflow-y-scroll mr-2">
+          <h3 className="text-lg font-bold">Console Output:</h3>
+          <ul>{consoleOutput.map((line, index) => <li key={index}>{line}</li>)}</ul>
         </div>
 
-        <iframe
-          id="outputFrame"
-          title="Output"
-          className="w-1/2 h-72 border bg-green-300"
-        ></iframe>
+        <iframe id="outputFrame" title="Output" className="w-1/2 h-72 border bg-green-300"></iframe>
       </div>
     </div>
   );
 };
 
 export default Editor;
+
