@@ -8,10 +8,34 @@ import "codemirror/mode/css/css";
 import "codemirror/addon/edit/closetag";
 import "codemirror/addon/edit/closebrackets";
 
+const defaultCode = {
+  htmlmixed: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>Hello, World!</h1>
+</body>
+</html>`,
+  css: `body {
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
+}
+h1 {
+  color: #007BFF;
+}`,
+  javascript: `console.log('Hello, World!');`,
+};
+
 const Editor = () => {
   const editorRef = useRef(null);
   const [language, setLanguage] = useState("htmlmixed");
-  const [code, setCode] = useState(""); // Initial code is empty
+  const [code, setCode] = useState(defaultCode["htmlmixed"]);
+  const [lastValidCode, setLastValidCode] = useState(defaultCode["htmlmixed"]);  // Track the last valid input
   const [consoleOutput, setConsoleOutput] = useState([]); // Store console logs
 
   // Initialize CodeMirror editor
@@ -35,6 +59,7 @@ const Editor = () => {
     editorRef.current.on("change", (instance) => {
       const newCode = instance.getValue();
       setCode(newCode);
+      setLastValidCode(newCode); // Update the last valid code
       // Store the updated code in localStorage to sync across tabs (optional)
       localStorage.setItem("sharedCode", newCode);
     });
@@ -62,19 +87,24 @@ const Editor = () => {
   const handleLanguageChange = (e) => {
     const newLanguage = e.target.value;
     setLanguage(newLanguage);
-    setCode("");  // Reset code when switching language
+    const newCode = defaultCode[newLanguage];
+    setCode(newCode);
     if (editorRef.current) {
       editorRef.current.setOption("mode", newLanguage);
-      editorRef.current.setValue("");
+      editorRef.current.setValue(newCode);
       editorRef.current.focus();  // Ensure focus is kept on the editor after language change
     }
   };
 
-  // Clear editor
+  // Clear editor or revert to the last valid code if cleared
   const handleClearScreen = () => {
-    setCode("");
+    if (code === "") {
+      setCode(lastValidCode);  // Restore the last valid code if the user clears the editor
+    } else {
+      setCode("");
+    }
     if (editorRef.current) {
-      editorRef.current.setValue("");
+      editorRef.current.setValue(code === "" ? lastValidCode : "");
     }
   };
 
@@ -83,9 +113,12 @@ const Editor = () => {
     const iframe = document.getElementById("outputFrame");
     const doc = iframe.contentDocument || iframe.contentWindow.document;
 
-    const htmlCode = language === "htmlmixed" ? code : "";
-    const cssCode = language === "css" ? code : "";
-    const jsCode = language === "javascript" ? code : "";
+    const htmlCode =
+      language === "htmlmixed" ? editorRef.current.getValue() : defaultCode.htmlmixed;
+    const cssCode =
+      language === "css" ? editorRef.current.getValue() : defaultCode.css;
+    const jsCode =
+      language === "javascript" ? editorRef.current.getValue() : defaultCode.javascript;
 
     const fullCode = `
       <!DOCTYPE html>
@@ -115,7 +148,7 @@ const Editor = () => {
 
   // Execute JavaScript and log output
   const handleConsoleOutput = () => {
-    const jsCode = code;
+    const jsCode = editorRef.current.getValue();
     const iframe = document.createElement("iframe");
     document.body.appendChild(iframe);
     const iframeWindow = iframe.contentWindow;
@@ -180,7 +213,3 @@ const Editor = () => {
 };
 
 export default Editor;
-
-
-
-
