@@ -90,9 +90,6 @@ const AdminEditorPage = () => {
         <div className="grid grid-cols-[230px_1fr] min-h-screen">
             <div className="aside bg-[#1c1e29] p-4 text-white flex flex-col">
                 <div className="asideInner flex-1">
-                    <div className="logo border-b border-[#424242] pb-2">
-                        <img className="logoImage h-15" src="/code-sync.png" alt="logo" />
-                    </div>
                     <h3 className="text-xl mt-4 text-center text-green-400">Connected</h3>
                     <div className="clientsList flex items-center flex-wrap gap-5 mt-5">
                         {clients.map((client) => (
