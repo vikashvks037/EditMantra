@@ -96,60 +96,54 @@ const ACTIONS = {
   LEAVE: "leave",
 };
 
-// A map to track users and their socket IDs
-const userSocketMap = {}; // User to socket ID map
-
+const userSocketMap = {};
 function getAllConnectedClients(roomId) {
-  return Array.from(io.sockets.adapter.rooms.get(roomId) || []).map(
-    (socketId) => ({
-      socketId,
-      username: userSocketMap[socketId], // Get the username from the map
-    })
-  );
+    // Map
+    return Array.from(io.sockets.adapter.rooms.get(roomId) || []).map(
+        (socketId) => {
+            return {
+                socketId,
+                username: userSocketMap[socketId],
+            };
+        }
+    );
 }
 
-io.on("connection", (socket) => {
-  console.log("New client connected", socket.id);
+io.on('connection', (socket) => {
+    console.log('socket connected', socket.id);
 
-  // Handle user joining with a username
-  socket.on(ACTIONS.JOIN, ({ roomId, username }) => {
-    userSocketMap[socket.id] = username;
-    socket.join(roomId);
-    console.log(`${username} joined room ${roomId}`);
-
-    // Notify all clients in the room about the new user
-    const clients = getAllConnectedClients(roomId);
-    clients.forEach(({ socketId }) => {
-      io.to(socketId).emit(ACTIONS.JOINED, {
-        clients,
-        username,
-        socketId: socket.id,
-      });
+    socket.on(ACTIONS.JOIN, ({ roomId, username }) => {
+        userSocketMap[socket.id] = username;
+        socket.join(roomId);
+        const clients = getAllConnectedClients(roomId);
+        clients.forEach(({ socketId }) => {
+            io.to(socketId).emit(ACTIONS.JOINED, {
+                clients,
+                username,
+                socketId: socket.id,
+            });
+        });
     });
 
-    // Emit sync code to the user when they join
-    socket.to(roomId).emit(ACTIONS.CODE_CHANGE, { code: 'initial code' }); // Customize initial code as needed
-  });
-
-  // Handle code change from one client
-  socket.on(ACTIONS.CODE_CHANGE, ({ roomId, code }) => {
-    socket.to(roomId).emit(ACTIONS.CODE_CHANGE, { code });
-  });
-
-  // Handle when a user disconnects
-  socket.on("disconnecting", () => {
-    const rooms = Array.from(socket.rooms);
-    rooms.forEach((roomId) => {
-      socket.to(roomId).emit(ACTIONS.DISCONNECTED, {
-        socketId: socket.id,
-        username: userSocketMap[socket.id],
-      });
+    socket.on(ACTIONS.CODE_CHANGE, ({ roomId, code }) => {
+        socket.in(roomId).emit(ACTIONS.CODE_CHANGE, { code });
     });
 
-    // Remove the user from the tracking map
-    delete userSocketMap[socket.id];
-    console.log(`${socket.id} disconnected and removed from userSocketMap`);
-  });
+    socket.on(ACTIONS.SYNC_CODE, ({ socketId, code }) => {
+        io.to(socketId).emit(ACTIONS.CODE_CHANGE, { code });
+    });
+
+    socket.on('disconnecting', () => {
+        const rooms = [...socket.rooms];
+        rooms.forEach((roomId) => {
+            socket.in(roomId).emit(ACTIONS.DISCONNECTED, {
+                socketId: socket.id,
+                username: userSocketMap[socket.id],
+            });
+        });
+        delete userSocketMap[socket.id];
+        socket.leave();
+    });
 });
 
 
