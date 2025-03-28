@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { useLocation, useNavigate, Navigate, useParams, Link } from 'react-router-dom';
 import ACTIONS from '../../Actions';
 import Editor from '../Editor';
+import Editor from '../Client';
 import { initSocket } from '../../socket';
 
 const AdminEditorPage = () => {
