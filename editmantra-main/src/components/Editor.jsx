@@ -8,8 +8,9 @@ import "codemirror/mode/css/css";
 import "codemirror/addon/edit/closetag";
 import "codemirror/addon/edit/closebrackets";
 
+// Default code for HTML, CSS, and JS
 const defaultCode = {
-  htmlmixed: `<!DOCTYPE html>
+  html: `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -33,88 +34,59 @@ h1 {
 
 const Editor = () => {
   const editorRef = useRef(null);
-  const [language, setLanguage] = useState("htmlmixed");
-  const [code, setCode] = useState(defaultCode["htmlmixed"]);
+  const [code, setCode] = useState({
+    html: defaultCode.html,
+    css: defaultCode.css,
+    javascript: defaultCode.javascript,
+  });
   const [consoleOutput, setConsoleOutput] = useState([]); // Store console logs
 
   // Initialize CodeMirror editor
   useEffect(() => {
-    editorRef.current = Codemirror.fromTextArea(
+    const editor = Codemirror.fromTextArea(
       document.getElementById("realtimeEditor"),
       {
-        mode: language,
+        mode: "htmlmixed", // Supports HTML, CSS, and JavaScript mixed
         theme: "dracula",
         autoCloseTags: true,
         autoCloseBrackets: true,
         lineNumbers: true,
+        extraKeys: {
+          "Ctrl-Space": "autocomplete",
+        },
       }
     );
 
-    // Set the initial value and ensure focus is on the editor
-    editorRef.current.setValue(code);
-    editorRef.current.focus();
+    editorRef.current = editor;
+
+    // Set the initial value
+    const initialCode = `${code.html}\n\n/* CSS */\n${code.css}\n\n/* JavaScript */\n${code.javascript}`;
+    editor.setValue(initialCode);
+    editor.focus();
 
     // Listen for changes in the editor
-    editorRef.current.on("change", (instance) => {
+    editor.on("change", (instance) => {
       const newCode = instance.getValue();
-      setCode(newCode);
-      // Store the updated code in localStorage to sync across tabs (optional)
-      localStorage.setItem("sharedCode", newCode);
+      setCode({
+        html: newCode.split("/* CSS */")[0],
+        css: newCode.split("/* CSS */")[1].split("/* JavaScript */")[0],
+        javascript: newCode.split("/* JavaScript */")[1],
+      });
     });
 
-    // Listen for changes in localStorage (to sync across all tabs)
-    const storageListener = (event) => {
-      if (event.key === "sharedCode") {
-        const newCode = event.newValue;
-        if (newCode && newCode !== editorRef.current.getValue()) {
-          editorRef.current.setValue(newCode);
-          setCode(newCode);
-        }
-      }
-    };
-
-    window.addEventListener("storage", storageListener);
-
     return () => {
-      window.removeEventListener("storage", storageListener);
-      editorRef.current?.toTextArea();
+      editor.toTextArea();
     };
-  }, [language]);
+  }, []);
 
-  // Handle language change
-  const handleLanguageChange = (e) => {
-    const newLanguage = e.target.value;
-    setLanguage(newLanguage);
-    // Set the code only if it hasn't been modified or the code is empty for the selected language
-    const newCode = code || defaultCode[newLanguage];  // Use existing code if available
-    setCode(newCode);
-
-    if (editorRef.current) {
-      editorRef.current.setOption("mode", newLanguage);
-      editorRef.current.setValue(newCode);
-      editorRef.current.focus();  // Ensure focus is kept on the editor after language change
-    }
-  };
-
-  // Clear editor
-  const handleClearScreen = () => {
-    setCode("");
-    if (editorRef.current) {
-      editorRef.current.setValue("");
-    }
-  };
-
-  // Display merged result
+  // Handle view result
   const handleViewResult = () => {
     const iframe = document.getElementById("outputFrame");
     const doc = iframe.contentDocument || iframe.contentWindow.document;
 
-    const htmlCode =
-      language === "htmlmixed" ? editorRef.current.getValue() : defaultCode.htmlmixed;
-    const cssCode =
-      language === "css" ? editorRef.current.getValue() : defaultCode.css;
-    const jsCode =
-      language === "javascript" ? editorRef.current.getValue() : defaultCode.javascript;
+    const htmlCode = code.html;
+    const cssCode = code.css;
+    const jsCode = code.javascript;
 
     const fullCode = `
       <!DOCTYPE html>
@@ -123,10 +95,10 @@ const Editor = () => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Preview</title>
-        <style>${cssCode}</style> <!-- Injecting CSS directly into <head> -->
+        <style>${cssCode}</style>
       </head>
       <body>
-        ${htmlCode} <!-- Injecting HTML -->
+        ${htmlCode}
         <script>
           try { ${jsCode} } catch (error) {
             console.error("Error in JavaScript:", error);
@@ -142,67 +114,46 @@ const Editor = () => {
     doc.close();
   };
 
-  // Execute JavaScript and log output
-  const handleConsoleOutput = () => {
-    const jsCode = editorRef.current.getValue();
-    const iframe = document.createElement("iframe");
-    document.body.appendChild(iframe);
-    const iframeWindow = iframe.contentWindow;
-
-    iframeWindow.console.log = (message) => {
-      setConsoleOutput((prev) => [...prev, `> ${message}`]);
-    };
-
-    try {
-      iframeWindow.eval(jsCode);
-    } catch (error) {
-      setConsoleOutput((prev) => [...prev, `Error: ${error.message}`]);
-    }
-
-    document.body.removeChild(iframe);
+  // Clear the editor
+  const handleClear = () => {
+    setCode({
+      html: "",
+      css: "",
+      javascript: "",
+    });
+    editorRef.current.setValue("");
   };
-
-  // Clear console output
-  const clearConsole = () => setConsoleOutput([]);
 
   return (
     <div className="p-1 shadow-lg flex-col">
       <div className="flex mb-1 font-bold">
-        <select
-          value={language}
-          onChange={handleLanguageChange}
-          className="p-1 mr-2 border text-center rounded-sm focus:outline-none text-cyan-700 font-bold"
-        >
-          <option value="htmlmixed">HTML</option>
-          <option value="css">CSS</option>
-          <option value="javascript">JavaScript</option>
-        </select>
-
         <div className="flex space-x-6 ml-96">
-          <button onClick={handleViewResult} className="px-4 py-2 bg-pink-500 text-white rounded-sm hover:bg-pink-700">
-            View Result
+          <button
+            onClick={handleViewResult}
+            className="px-4 py-2 bg-pink-500 text-white rounded-sm hover:bg-pink-700"
+          >
+            Output
           </button>
-          <button onClick={handleConsoleOutput} className="px-4 py-2 bg-cyan-600 text-white rounded-sm hover:bg-cyan-800">
-            Console Output
-          </button>
-          <button onClick={clearConsole} className="px-4 py-2 bg-purple-600 text-white rounded-sm hover:bg-purple-500">
-            Clear Console
-          </button>
-          <button onClick={handleClearScreen} className="px-4 py-2 bg-red-700 text-white rounded-sm hover:bg-red-900">
-            Clear Screen
+          <button
+            onClick={handleClear}
+            className="px-4 py-2 bg-red-700 text-white rounded-sm hover:bg-red-900"
+          >
+            Clear
           </button>
         </div>
       </div>
 
-      <textarea id="realtimeEditor" className="w-full h-72 text-base font-mono text-white bg-transparent border-2 focus:outline-none transition-all"></textarea>
+      <textarea
+        id="realtimeEditor"
+        className="w-full h-72 text-base font-mono text-white bg-transparent border-2 focus:outline-none transition-all"
+      ></textarea>
 
       <div className="flex w-full">
-        <div className="w-1/2 p-2 bg-gray-700 text-white h-72 overflow-y-scroll mr-2">
-          <h3 className="text-lg font-bold">Console Output:</h3>
-          <ul>{consoleOutput.map((line, index) => <li key={index}>{line}</li>)}</ul>
-        </div>
-
-        <iframe id="outputFrame" title="Output" className="w-1/2 h-72 border bg-green-300"></iframe>
+        <iframe
+          id="outputFrame"
+          title="Output"
+          className="w-1/2 h-72 border bg-green-300"
+        ></iframe>
       </div>
     </div>
   );
