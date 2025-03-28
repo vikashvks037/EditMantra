@@ -24,6 +24,9 @@ const defaultCode = {
   font-family: Arial, sans-serif;
   background-color: #f5f5f5;
   color: #333;
+}
+h1 {
+  color: #007BFF;
 }`,
   javascript: `console.log('Hello, World!');`,
 };
@@ -55,7 +58,7 @@ const Editor = () => {
     editorRef.current.on("change", (instance) => {
       const newCode = instance.getValue();
       setCode(newCode);
-      // Store the updated code in localStorage to sync across tabs
+      // Store the updated code in localStorage to sync across tabs (optional)
       localStorage.setItem("sharedCode", newCode);
     });
 
@@ -118,9 +121,10 @@ const Editor = () => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Preview</title>
-        <style>${cssCode}</style>
+        <style>${cssCode}</style> <!-- Injecting CSS directly into <head> -->
       </head>
-      <body>${htmlCode}
+      <body>
+        ${htmlCode} <!-- Injecting HTML -->
         <script>
           try { ${jsCode} } catch (error) {
             console.error("Error in JavaScript:", error);
@@ -130,6 +134,7 @@ const Editor = () => {
       </html>
     `;
 
+    // Clear previous content and inject updated code into iframe
     doc.open();
     doc.write(fullCode);
     doc.close();
