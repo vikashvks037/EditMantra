@@ -59,7 +59,7 @@ const Signup = () => {
             <h2 className="text-2xl font-bold text-blue-700 text-center mb-6 mt-5">
               Welcome to EditMantra
             </h2>
-            <ul className="list-disc pl-6 text-gray-600 mt-8 text-md">
+            <ul className="list-disc pl-6 text-gray-600 mt-4 text-md">
               <li>🖥️ Live coding collaboration</li>
               <li>🏆 Quiz and coding Questions</li>
               <li>📚 Code Review Using AI</li>
@@ -93,18 +93,18 @@ const Signup = () => {
                 className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
               />
               <input
-                type="text"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
-              />
-              <input
                 type="email"
                 placeholder="User@gmail.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+              />
+              <input
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
                 className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
               />
