@@ -13,11 +13,11 @@ const AdminAbout = () => {
   return (
     <div className='flex flex-col min-h-screen bg-gradient-to-r from-blue-400 via-blue-00 to-cyan-500'>
       <AdminHeader />
-      <div className="max-w-5xl mx-auto bg-gray-200 p-8 rounded-lg mt-6 shadow-xl">
-        <h3 className="text-4xl font-bold text-blue-900 mb-6 text-center tracking-wide">
+      <div className="max-w-5xl mx-auto p-8 rounded-lg mt-6">
+        <h3 className="text-4xl font-bold text-blue-900 text-center tracking-wide">
           Empowering the Next Generation of Learning
         </h3>
-        <p className="text-lg text-gray-800 leading-relaxed mb-4 text-justify">
+        <p className="text-lg text-gray-800 leading-relaxed text-justify">
           Join us today and become part of a growing network of passionate learners, educators, and forward-thinking 
           innovators.We are building a dynamic,supportive community that thrives on collaboration coding, and gamified learning 
           experiences. Together, we'll break barriers, build meaningful solutions, and push the boundaries of what’s 
