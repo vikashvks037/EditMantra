@@ -188,7 +188,7 @@ const Editor = () => {
   return (
     <div className="p-1 shadow-lg flex-col">
       <textarea id="realtimeEditor" className="w-full h-72 text-base font-mono text-white bg-transparent border-2 focus:outline-none transition-all"></textarea>
-        <div className="flex mb-1 font-bold">
+        <div className="flex mb-1 mt-1 font-bold">
         <div className="flex space-x-6">
           <button onClick={handleViewResult} className="px-12 py-2 bg-pink-500 text-white rounded-sm hover:bg-pink-700">
             View
