@@ -62,9 +62,9 @@ const Profile = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-200">
       <Header />
-      <div className="flex flex-col md:flex-row flex-grow p-6 gap-8 justify-center items-center">
+      <div className="flex flex-col md:flex-row flex-grow p-3 gap-4 justify-center items-center">
         {/* Profile Card */}
-        <div className="bg-white shadow-2xl rounded-lg p-6 w-full md:w-[40%] border-t-4 border-blue-500">
+        <div className="bg-white shadow-2xl rounded-lg p- w-full md:w-[40%] border-t-4 border-blue-500">
           <div className="space-y-4 bg-gray-50 p-6 shadow rounded-lg">
             <div className="text-center">
               <div className="w-24 h-24 mx-auto rounded-full bg-blue-500 flex items-center justify-center text-white text-4xl font-bold shadow-lg">
@@ -72,8 +72,10 @@ const Profile = () => {
               </div>
             </div>
             {[
+              { label: "Name", value: userInfo.name },
+              { label: "Email", value: userInfo.email },
+              { label: "Username", value: userInfo.username },
               { label: "Stars", value: userInfo.stars },
-              { label: "Points", value: userInfo.points },
               { label: "Feedback", value: userInfo.feedback },
             ].map((field, index) => (
               <div key={index} className="flex justify-between border-b pb-2">
@@ -85,7 +87,7 @@ const Profile = () => {
           <div className="mt-6 flex justify-center">
             <button
               onClick={handleLogout}
-              className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold rounded-full shadow-md hover:scale-105 transition-transform duration-300"
+              className="px-6 py-3 mb-2 bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold rounded-full shadow-md hover:scale-105 transition-transform duration-300"
             >
               Logout
             </button>
