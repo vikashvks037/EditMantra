@@ -24,7 +24,6 @@ import AdminRealTimeCollaboration from './components/Admin/AdminRealTimeCollabor
 import AdminEditorPage from './components/Admin/AdminEditorPage.jsx';
 import Game from "./components/Game.jsx";
 import ViewModifyQuestion from "./components/Admin/ViewModifyQuestion.jsx"
-import Leaderboard from './components/Leaderboard.jsx';
 import Review from './components/Review.jsx'
 function App() {
     return (
@@ -41,7 +40,6 @@ function App() {
                     <Route path="/Home/Profile" element={<Profile />} />
                     <Route path="/Home/About" element={<About />} />
                     <Route path="/game" element={<Game />} />
-                    <Route path='/Leaderboard' element={<Leaderboard />} />
                     
                     {/* Dashboard and Admin routes */}
                     <Route path="/Dashboard" element={<Dashboard />} />
