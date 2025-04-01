@@ -187,18 +187,17 @@ const Editor = () => {
 
   return (
     <div className="p-1 shadow-lg flex-col">
-      <div className="flex mb-1 font-bold">
-        <div className="flex space-x-6 ml-96">
-          <button onClick={handleViewResult} className="px-4 py-2 bg-pink-500 text-white rounded-sm hover:bg-pink-700">
+      <textarea id="realtimeEditor" className="w-full h-72 text-base font-mono text-white bg-transparent border-2 focus:outline-none transition-all"></textarea>
+        <div className="flex mb-1 font-bold">
+        <div className="flex space-x-6">
+          <button onClick={handleViewResult} className="px-12 py-2 bg-pink-500 text-white rounded-sm hover:bg-pink-700">
             View
           </button>
-          <button onClick={handleClearScreen} className="px-4 py-2 bg-red-700 text-white rounded-sm hover:bg-red-900">
+          <button onClick={handleClearScreen} className="px-10 py-2 bg-red-700 text-white rounded-sm hover:bg-red-900">
             Clear Screen
           </button>
         </div>
       </div>
-
-      <textarea id="realtimeEditor" className="w-full h-72 text-base font-mono text-white bg-transparent border-2 focus:outline-none transition-all"></textarea>
 
       <div className="flex w-full">
         <div className="w-1/2 p-2 bg-gray-700 text-white h-72 overflow-y-scroll mr-2">
