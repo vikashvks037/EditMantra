@@ -104,7 +104,7 @@ const EditorPage = () => {
                     Leave
                 </button>
             </div>
-            <div className="editorWrap p-4">
+            <div className="editorWrap p-1">
                 <Editor
                     socketRef={socketRef}
                     roomId={roomId}
