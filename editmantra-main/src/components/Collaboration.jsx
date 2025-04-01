@@ -60,7 +60,7 @@ const Collaboration = () => {
 
   // Navigate to Review Page
   const handleReviewClick = () => {
-    navigate("/Dashboard/AdminRealTimeCollaboration/Review", { state: { code, language } });
+    navigate("/Dashboard/Collaboration/Review", { state: { code, language } });
   };
 
   return (
