@@ -55,17 +55,6 @@ function Header() {
           Profile
         </Link>
         <Link
-          to="/Leaderboard"
-          className={`text-xl font-semibold px-4 py-2 md:px-0 ${
-            isActive("/Leaderboard")
-              ? "text-blue-600 underline"
-              : "text-cyan-900 hover:text-blue-400 hover:underline"
-          }`}
-          onClick={() => setMenuOpen(false)}
-        >
-          Leaderboard
-        </Link>
-        <Link
           to="/Home/About"
           className={`text-xl font-semibold px-4 py-2 md:px-0 ${
             isActive("/Home/About")
