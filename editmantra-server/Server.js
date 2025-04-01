@@ -10,13 +10,14 @@ const rateLimit = require('express-rate-limit');
 const validator = require('validator');
 const morgan = require('morgan'); // For request logging
 const http = require('http');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 const User = require('./models/User'); // Ensure path correctness
 const Admin = require('./models/Admin'); // Ensure path correctness
 const Question = require('./models/Question');
 const MCQQuestion = require('./models/mcqQuestion');
 const aiRoutes = require('./routes/ai.routes')
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
+
 
 
 const app = express();
@@ -29,26 +30,37 @@ const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 
 
+// Initialize Socket.io with CORS configuration
+const io = socketIo(server, {
+  cors: {
+    origin: "http://localhost:3000", // Replace with your client-side URL
+    methods: ["GET", "POST"]
+  }
+});
+
+// Middleware
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Allow requests from the frontend (adjust this URL if needed)
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allow these HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allow these headers
+}));
+
+
 // // Initialize Socket.io with CORS configuration
 // const io = socketIo(server, {
 //   cors: {
-//     origin: "http://localhost:3000", // Replace with your client-side URL
+//     origin: "https://editmantra-frontend.onrender.com", // Replace with your client-side URL
 //     methods: ["GET", "POST"]
 //   }
 // });
 
+
 // // Middleware
 // app.use(cors({
-//   origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Allow requests from the frontend (adjust this URL if needed)
+//   origin: process.env.FRONTEND_URL || 'https://editmantra-frontend.onrender.com', // Allow requests from the frontend (adjust this URL if needed)
 //   methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allow these HTTP methods
 //   allowedHeaders: ['Content-Type', 'Authorization'], // Allow these headers
 // }));
-
-
-// // MongoDB connection
-// mongoose.connect('mongodb://127.0.0.1:27017/EditMantra')
-//   .then(() => console.log('Connected to MongoDB'))
-//   .catch((err) => console.error('Error connecting to MongoDB:', err));
 
 
 // MongoDB connection 
@@ -57,21 +69,10 @@ mongoose.connect('mongodb+srv://vikashvks037:Vikash%40123@cluster0.ljjpy.mongodb
   .catch((err) => console.error('Error connecting to MongoDB:', err));
 
 
-// Initialize Socket.io with CORS configuration
-const io = socketIo(server, {
-  cors: {
-    origin: "https://editmantra-frontend.onrender.com", // Replace with your client-side URL
-    methods: ["GET", "POST"]
-  }
-});
-
-
-// Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'https://editmantra-frontend.onrender.com', // Allow requests from the frontend (adjust this URL if needed)
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allow these HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Allow these headers
-}));
+// // MongoDB connection
+// mongoose.connect('mongodb://127.0.0.1:27017/EditMantra')
+//   .then(() => console.log('Connected to MongoDB'))
+//   .catch((err) => console.error('Error connecting to MongoDB:', err));
 
 
 app.use(bodyParser.json());  // For parsing incoming JSON requests
@@ -179,15 +180,14 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-
 // Route for basic API health check
 app.get("/", (req, res) => {
   res.send("EditMantra API is running 🚀");
 });
 
-  // User logging
+// User login with JWT
 app.post('/user-login', async (req, res) => {
-  const { email, password } = req.body; // User login does not require key
+  const { email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ message: 'Email and password are required' });
@@ -205,8 +205,15 @@ app.post('/user-login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
+    const token = jwt.sign(
+      { userId: user._id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '2h' }
+    );
+
     res.status(200).json({
       message: 'User login successful',
+      token,
       user: {
         name: user.name,
         email: user.email,
@@ -221,51 +228,11 @@ app.post('/user-login', async (req, res) => {
 });
 
 
-//Admin logging
-app.post('/admin-login', async (req, res) => {
-  const { email, password, key } = req.body; // Admin login requires key
 
-  if (!email || !password || !key) {
-    return res.status(400).json({ message: 'Email, password, and admin key are required' });
-  }
-
-  try {
-    const user = await Admin.findOne({ email });
-
-    if (!user) {
-      return res.status(401).json({ message: 'Admin not found' });
-    }
-
-    if (user.key !== key) {
-      return res.status(403).json({ message: 'Invalid admin key' });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-
-    res.status(200).json({
-      message: 'Admin login successful',
-      user: {
-        name: user.name,
-        email: user.email,
-        username: user.username,
-        role: user.role,
-      },
-    });
-  } catch (error) {
-    console.error('Error during admin login:', error);
-    res.status(500).json({ message: 'Server error during admin login' });
-  }
-});
-  
-
-// Route to /signup/user
+// User Signup with JWT
 app.post('/signup/user', async (req, res) => {
   const { name, email, username, password } = req.body;
 
-  // Validate input
   if (!name || !email || !username || !password) {
     return res.status(400).json({ message: 'All fields are required.' });
   }
@@ -283,7 +250,7 @@ app.post('/signup/user', async (req, res) => {
   try {
     const [existingUser, existingUsername] = await Promise.all([
       User.findOne({ email }),
-      User.findOne({ username })
+      User.findOne({ username }),
     ]);
 
     if (existingUser) {
@@ -295,11 +262,16 @@ app.post('/signup/user', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
     const user = new User({ name, email, username, password: hashedPassword });
     await user.save();
 
-    res.status(201).json({ message: 'User registered successfully!' });
+    const token = jwt.sign(
+      { userId: user._id, email: user.email, role: 'user' },
+      JWT_SECRET,
+      { expiresIn: '2h' }
+    );
+
+    res.status(201).json({ message: 'User registered successfully!', token });
   } catch (error) {
     console.error('Error during signup:', error.message);
     res.status(500).json({ message: 'Server error during signup.' });
@@ -357,45 +329,46 @@ app.post('/signup/admin', async (req, res) => {
   }
 });
 
-// Route to fetch books by title
-app.get("/api/books", async (req, res) => {
-  const searchTerm = req.query.title;
-  if (!searchTerm) {
-      return res.status(400).json({ error: "Title parameter is required" });
+
+//Admin logging
+app.post('/admin-login', async (req, res) => {
+  const { email, password, key } = req.body; // Admin login requires key
+
+  if (!email || !password || !key) {
+    return res.status(400).json({ message: 'Email, password, and admin key are required' });
   }
 
   try {
-      const response = await fetch(`https://openlibrary.org/search.json?title=${searchTerm}`);
-      if (!response.ok) {
-          throw new Error(`OpenLibrary API error: ${response.statusText}`);
-      }
-      const data = await response.json();
-      res.json(data);
+    const user = await Admin.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ message: 'Admin not found' });
+    }
+
+    if (user.key !== key) {
+      return res.status(403).json({ message: 'Invalid admin key' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    res.status(200).json({
+      message: 'Admin login successful',
+      user: {
+        name: user.name,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+      },
+    });
   } catch (error) {
-      console.error("Error fetching books:", error);
-      res.status(500).json({ error: "Failed to fetch books" });
+    console.error('Error during admin login:', error);
+    res.status(500).json({ message: 'Server error during admin login' });
   }
 });
 
-// ✅ New Route to fetch book details by ID
-app.get("/api/book/:id", async (req, res) => {
-  const bookId = req.params.id;
-  if (!bookId) {
-      return res.status(400).json({ error: "Book ID is required" });
-  }
-
-  try {
-      const response = await fetch(`https://openlibrary.org/works/${bookId}.json`);
-      if (!response.ok) {
-          throw new Error(`OpenLibrary API error: ${response.statusText}`);
-      }
-      const data = await response.json();
-      res.json(data);
-  } catch (error) {
-      console.error("Error fetching book details:", error);
-      res.status(500).json({ error: "Failed to fetch book details" });
-  }
-});
 
 // Route to get all users
 app.get('/api/users', async (req, res) => {
@@ -469,6 +442,86 @@ app.get('/api/user/profile', authenticateToken, async (req, res) => {
 });
 
 
+
+// Route to delete a user by ID
+app.delete('/api/users/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findByIdAndDelete(id); // Find the user by ID and delete
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to delete user' });
+  }
+});
+
+
+
+// Verify Username Route
+app.post('/verify-username', async (req, res) => {
+  const { username } = req.body;
+
+  try {
+    // Check if username exists in User or Admin schemas
+    const user = await User.findOne({ username });
+    const admin = await Admin.findOne({ username });
+
+    if (user || admin) {
+      return res.status(200).json({ message: 'Username verified successfully' });
+    } else {
+      return res.status(404).json({ message: 'Username not found' });
+    }
+  } catch (error) {
+    console.error('Error verifying username:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+// Route to fetch books by title
+app.get("/api/books", async (req, res) => {
+  const searchTerm = req.query.title;
+  if (!searchTerm) {
+      return res.status(400).json({ error: "Title parameter is required" });
+  }
+
+  try {
+      const response = await fetch(`https://openlibrary.org/search.json?title=${searchTerm}`);
+      if (!response.ok) {
+          throw new Error(`OpenLibrary API error: ${response.statusText}`);
+      }
+      const data = await response.json();
+      res.json(data);
+  } catch (error) {
+      console.error("Error fetching books:", error);
+      res.status(500).json({ error: "Failed to fetch books" });
+  }
+});
+
+// ✅ New Route to fetch book details by ID
+app.get("/api/book/:id", async (req, res) => {
+  const bookId = req.params.id;
+  if (!bookId) {
+      return res.status(400).json({ error: "Book ID is required" });
+  }
+
+  try {
+      const response = await fetch(`https://openlibrary.org/works/${bookId}.json`);
+      if (!response.ok) {
+          throw new Error(`OpenLibrary API error: ${response.statusText}`);
+      }
+      const data = await response.json();
+      res.json(data);
+  } catch (error) {
+      console.error("Error fetching book details:", error);
+      res.status(500).json({ error: "Failed to fetch book details" });
+  }
+});
+
+
 // Route to add a question
 app.post('/api/questions/add', async (req, res) => {
   const { title, description, difficulty, testCases } = req.body;
@@ -496,21 +549,6 @@ app.post('/api/questions/add', async (req, res) => {
   }
 });
 
-
-// Route to delete a user by ID
-app.delete('/api/users/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    const user = await User.findByIdAndDelete(id); // Find the user by ID and delete
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.status(200).json({ message: 'User deleted successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to delete user' });
-  }
-});
 
 
 // Route to fetch all questions
@@ -552,27 +590,6 @@ app.get('/api/questions/:id', async (req, res) => {
 
       // Respond with a generic error message
       res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-
-// Verify Username Route
-app.post('/verify-username', async (req, res) => {
-  const { username } = req.body;
-
-  try {
-    // Check if username exists in User or Admin schemas
-    const user = await User.findOne({ username });
-    const admin = await Admin.findOne({ username });
-
-    if (user || admin) {
-      return res.status(200).json({ message: 'Username verified successfully' });
-    } else {
-      return res.status(404).json({ message: 'Username not found' });
-    }
-  } catch (error) {
-    console.error('Error verifying username:', error);
-    res.status(500).json({ message: 'Server error' });
   }
 });
 
