@@ -83,24 +83,18 @@ const Collaboration = () => {
       </div>
 
       {/* Main Content - Flex Grow to fill space */}
-      <main className="flex-1 p-5 relative">
+      <main className="flex-1 p-3 relative">
         {/* Review Button for Large Screens */}
         <button
           onClick={handleReviewClick}
-          className="hidden md:block absolute top-5 right-5 px-4 py-2 text-white font-bold text-lg bg-gradient-to-r from-purple-500 to-pink-500 
-                     rounded-lg shadow-lg transform hover:scale-105 transition-all"
-          style={{
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19)",
-          }}
-        >
-          Paste Code here for Review 🚀
-        </button>
+          className="hidden md:block absolute top-20 right-4 px-4 py-2 text-white font-bold text-lg bg-gradient-to-r from-green-500 to-orange-400 
+                     rounded-lg shadow-lg transform hover:scale-105 transition-all">Click here and Paste code for AI Review</button>
 
         <h3 className="text-2xl font-semibold text-blue-800">{challenge.title}</h3>
         <p className="text-xl text-cyan-600">{challenge.description}</p>
 
         {/* Language Selection */}
-        <div className="mt-4 mb-4 font-bold text-purple-500 ">
+        <div className="mt-2 mb-3 font-bold text-purple-500 ">
           <select
             value={language}
             onChange={handleLanguageChange}
@@ -128,7 +122,7 @@ const Collaboration = () => {
         {/* Submit Button */}
         <button
           onClick={handleSubmit}
-          className="mt-4 p-2 bg-purple-500 text-white rounded"
+          className="mt-2 px-8 py-2 bg-cyan-500 hover:bg-blue-600 hover:scale-105 text-white rounded"
           disabled={isLoading}
         >
           {isLoading ? "Running..." : "Submit"}
@@ -146,6 +140,14 @@ const Collaboration = () => {
                 <p><strong>Actual Output:</strong> {test.actualOutput || "No Output"}</p>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Output */}
+        {output && (
+          <div className="output mt-4 p-4 rounded bg-gray-100 text-gray-800">
+            <h4 className="font-semibold">Execution Result:</h4>
+            <p>{output}</p>
           </div>
         )}
       </main>
