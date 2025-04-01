@@ -15,7 +15,8 @@ const Admin = require('./models/Admin'); // Ensure path correctness
 const Question = require('./models/Question');
 const MCQQuestion = require('./models/mcqQuestion');
 const aiRoutes = require('./routes/ai.routes')
-
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 
 const app = express();
@@ -158,6 +159,25 @@ io.on("connection", (socket) => {
     delete userSocketMap[socket.id];
   });
 });
+
+const JWT_SECRET = 'your_secret_key';
+
+// Middleware to authenticate JWT token
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'No token provided.' });
+  }
+
+  const token = authHeader.split(' ')[1];  // Extract token from 'Bearer token'
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Invalid or expired token.' });
+    }
+    req.user = user;  // Attach user info from the token to the request
+    next();
+  });
+};
 
 
 // Route for basic API health check
@@ -431,11 +451,12 @@ app.get('/api/admin/profile', async (req, res) => { // Add the leading `/` in th
 });
 
 
-// Route to fetch user profile
-app.get('/api/user/profile', async (req, res) => {
+// Route to fetch user profile (Authenticated user access)
+app.get('/api/user/profile', authenticateToken, async (req, res) => {
+  const { userId } = req.user; // Assuming userId is stored in the JWT payload
+
   try {
-    // Fetch the first user (if there is only one, or modify as needed)
-    const user = await User.findOne(); // Fetch a single user, or modify if you want to fetch based on some condition
+    const user = await User.findById(userId); // Fetch the user based on the ID from the JWT payload
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
