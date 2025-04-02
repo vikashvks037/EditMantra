@@ -36,7 +36,6 @@ const defaultCode = `<!DOCTYPE html>
 const Editor = () => {
   const editorRef = useRef(null);
   const [code, setCode] = useState(defaultCode);
-  const [consoleOutput, setConsoleOutput] = useState([]);
   const [changeLog, setChangeLog] = useState([]);
 
   useEffect(() => {
@@ -54,8 +53,25 @@ const Editor = () => {
     editorRef.current.setValue(code);
     editorRef.current.focus();
 
+    let prevCode = code; // Store last state
+
     editorRef.current.on("change", (instance) => {
       const newCode = instance.getValue();
+
+      if (newCode !== prevCode) {
+        const timestamp = new Date().toLocaleTimeString();
+        setChangeLog((prevLog) => [
+          ...prevLog,
+          {
+            time: timestamp,
+            oldCode: prevCode,
+            newCode: newCode,
+          },
+        ]);
+
+        prevCode = newCode;
+      }
+
       setCode(newCode);
       localStorage.setItem("sharedCode", newCode);
     });
@@ -120,23 +136,6 @@ const Editor = () => {
     doc.close();
   };
 
-  const handleTrackChanges = () => {
-    const newCode = editorRef.current.getValue();
-    const timestamp = new Date().toLocaleTimeString();
-
-    if (newCode !== code) {
-      setChangeLog((prevLog) => [
-        ...prevLog,
-        {
-          time: timestamp,
-          oldCode: code,
-          newCode: newCode,
-        },
-      ]);
-      setCode(newCode);
-    }
-  };
-
   const handleClearScreen = () => {
     setCode("");
     if (editorRef.current) {
@@ -160,12 +159,6 @@ const Editor = () => {
             View
           </button>
           <button
-            onClick={handleTrackChanges}
-            className="px-10 py-2 bg-blue-500 text-white rounded-sm hover:bg-blue-700"
-          >
-            Track Changes
-          </button>
-          <button
             onClick={handleClearScreen}
             className="px-10 py-2 bg-red-700 text-white rounded-sm hover:bg-red-900"
           >
@@ -175,15 +168,6 @@ const Editor = () => {
       </div>
 
       <div className="flex w-full">
-        <div className="w-1/2 p-2 bg-gray-700 text-white h-72 overflow-y-scroll mr-2">
-          <h3 className="text-lg font-bold">Console Output:</h3>
-          <ul>
-            {consoleOutput.map((line, index) => (
-              <li key={index}>{line}</li>
-            ))}
-          </ul>
-        </div>
-
         <iframe
           id="outputFrame"
           title="Output"
