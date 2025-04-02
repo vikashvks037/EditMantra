@@ -76,7 +76,7 @@ const Profile = () => {
               { label: "Email", value: userInfo.email },
               { label: "Username", value: userInfo.username },
               { label: "Stars", value: userInfo.stars },
-              { label: "Feedback", value: userInfo.feedback },
+              { label: "Live Room Code", value: userInfo.feedback },
             ].map((field, index) => (
               <div key={index} className="flex justify-between border-b pb-2">
                 <span className="font-semibold text-gray-700">{field.label}:</span>
