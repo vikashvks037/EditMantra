@@ -154,8 +154,6 @@ const Editor = () => {
             {changeLog.map((change, index) => (
               <li key={index} className="mb-2 border-b border-gray-700 pb-2">
                 <strong className="text-yellow-400">{change.time}</strong>
-                <p className="text-sm text-gray-400 mt-1">Previous Code:</p>
-                <pre className="bg-gray-900 p-2 text-xs rounded overflow-x-auto">{change.oldCode}</pre>
                 <p className="text-sm text-green-400 mt-1">New Code:</p>
                 <pre className="bg-gray-900 p-2 text-xs rounded overflow-x-auto">{change.newCode}</pre>
               </li>
