@@ -14,7 +14,7 @@ const defaultCode = `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Default Template</title>
+    <title>Live Editor</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f4f4; text-align: center; padding: 20px; }
         button { background-color: #4CAF50; color: white; padding: 10px; border: none; cursor: pointer; }
@@ -34,12 +34,16 @@ const defaultCode = `<!DOCTYPE html>
 
 const Editor = () => {
   const editorRef = useRef(null);
+  const prevCodeRef = useRef(defaultCode); // Store previous code
   const [code, setCode] = useState(defaultCode);
   const [changeLog, setChangeLog] = useState([]);
   const [history, setHistory] = useState([]);
   const [future, setFuture] = useState([]);
 
   useEffect(() => {
+    // Initialize socket connection
+    const socket = initSocket();
+    
     editorRef.current = Codemirror.fromTextArea(document.getElementById("realtimeEditor"), {
       mode: "htmlmixed",
       theme: "dracula",
@@ -51,26 +55,29 @@ const Editor = () => {
     editorRef.current.setValue(code);
     editorRef.current.focus();
 
-    let prevCode = code;
-
     editorRef.current.on("change", (instance) => {
       const newCode = instance.getValue();
-      
+      const prevCode = prevCodeRef.current;
+
       if (newCode !== prevCode) {
         const timestamp = new Date().toLocaleTimeString();
+        
         setChangeLog((prevLog) => [
           ...prevLog,
           { time: timestamp, oldCode: prevCode, newCode },
         ]);
 
         setHistory((prevHistory) => [...prevHistory, prevCode]);
-        setFuture([]);  // Clear future when new change is made
+        setFuture([]); // Clear redo stack when a new change is made
 
-        prevCode = newCode;
+        prevCodeRef.current = newCode; // Update previous code reference
       }
 
       setCode(newCode);
       localStorage.setItem("sharedCode", newCode);
+
+      // Emit the updated code to all connected users
+      socket.emit("codeChange", newCode);
     });
 
     const storageListener = (event) => {
@@ -83,9 +90,19 @@ const Editor = () => {
       }
     };
 
+    // Listen for real-time code updates from the socket
+    socket.on("codeChange", (updatedCode) => {
+      if (updatedCode !== editorRef.current.getValue()) {
+        editorRef.current.setValue(updatedCode);
+        setCode(updatedCode);
+      }
+    });
+
     window.addEventListener("storage", storageListener);
+
     return () => {
       window.removeEventListener("storage", storageListener);
+      socket.disconnect(); // Cleanup socket connection
       editorRef.current?.toTextArea();
     };
   }, []);
@@ -139,16 +156,6 @@ const Editor = () => {
       setHistory((prevHistory) => prevHistory.slice(0, -1));
       editorRef.current.setValue(prevCode);
       setCode(prevCode);
-    }
-  };
-
-  const handleRedo = () => {
-    if (future.length > 0) {
-      const nextCode = future[0];
-      setHistory((prevHistory) => [...prevHistory, code]);
-      setFuture((prevFuture) => prevFuture.slice(1));
-      editorRef.current.setValue(nextCode);
-      setCode(nextCode);
     }
   };
 
