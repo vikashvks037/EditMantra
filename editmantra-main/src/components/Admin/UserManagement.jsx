@@ -108,7 +108,7 @@ function UserManagement() {
                     <th className="border border-gray-300 p-3">Role</th>
                     <th className="border border-gray-300 p-3">Stars</th>
                     <th className="border border-gray-300 p-3">Points</th>
-                    <th className="border border-gray-300 p-3">Feedback</th>
+                    <th className="border border-gray-300 p-3">Room Code</th>
                     <th className="border border-gray-300 p-3">Actions</th>
                   </tr>
                 </thead>
@@ -122,7 +122,7 @@ function UserManagement() {
                         <td className="border border-gray-300 p-3">{user.role}</td>
                         <td className="border border-gray-300 p-3">{user.stars || 0}</td>
                         <td className="border border-gray-300 p-3">{user.points || 0}</td>
-                        <td className="border border-gray-300 p-3">{user.feedback || 'No Feedback'}</td>
+                        <td className="border border-gray-300 p-3">{user.feedback || 'No Room Available'}</td>
                         <td className="border border-gray-300 p-3 space-x-2">
                           <button
                             onClick={() => modifyUser(user)}
@@ -213,7 +213,7 @@ function UserManagement() {
                   />
                 </div>
                 <div className="mb-1">
-                  <label className="block text-gray-700 font-bold mb-2">Feedback</label>
+                  <label className="block text-gray-700 font-bold mb-2">Room Code</label>
                   <textarea
                     value={editingUser.feedback || ''}
                     onChange={(e) => setEditingUser({ ...editingUser, feedback: e.target.value })}
