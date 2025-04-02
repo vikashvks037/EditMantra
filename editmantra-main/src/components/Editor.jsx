@@ -1,3 +1,4 @@
+import { initSocket } from '../socket';
 import React, { useEffect, useRef, useState } from "react";
 import Codemirror from "codemirror";
 import "codemirror/lib/codemirror.css";
@@ -35,6 +36,8 @@ const Editor = () => {
   const editorRef = useRef(null);
   const [code, setCode] = useState(defaultCode);
   const [changeLog, setChangeLog] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [future, setFuture] = useState([]);
 
   useEffect(() => {
     editorRef.current = Codemirror.fromTextArea(document.getElementById("realtimeEditor"), {
@@ -59,6 +62,9 @@ const Editor = () => {
           ...prevLog,
           { time: timestamp, oldCode: prevCode, newCode },
         ]);
+
+        setHistory((prevHistory) => [...prevHistory, prevCode]);
+        setFuture([]);  // Clear future when new change is made
 
         prevCode = newCode;
       }
@@ -115,19 +121,35 @@ const Editor = () => {
     doc.close();
   };
 
-  const handleDownloadCode = () => {
-    const blob = new Blob([code], { type: "text/html" });
+  const handleDownloadHTML = () => {
+    const htmlContent = editorRef.current.getValue();
+    const blob = new Blob([htmlContent], { type: "text/html" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "index.html";
+    link.download = "code.html";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  const handleClearScreen = () => {
-    setCode("");
-    editorRef.current?.setValue("");
+  const handleUndo = () => {
+    if (history.length > 0) {
+      const prevCode = history[history.length - 1];
+      setFuture((prevFuture) => [code, ...prevFuture]);
+      setHistory((prevHistory) => prevHistory.slice(0, -1));
+      editorRef.current.setValue(prevCode);
+      setCode(prevCode);
+    }
+  };
+
+  const handleRedo = () => {
+    if (future.length > 0) {
+      const nextCode = future[0];
+      setHistory((prevHistory) => [...prevHistory, code]);
+      setFuture((prevFuture) => prevFuture.slice(1));
+      editorRef.current.setValue(nextCode);
+      setCode(nextCode);
+    }
   };
 
   return (
@@ -138,11 +160,12 @@ const Editor = () => {
       {/* Buttons */}
       <div className="flex space-x-6 my-2">
         <button onClick={handleViewResult} className="px-6 py-2 bg-pink-500 text-white rounded hover:bg-pink-700">Run</button>
-        <button onClick={handleClearScreen} className="px-6 py-2 bg-red-700 text-white rounded hover:bg-red-900">Clear</button>
-        <button onClick={handleDownloadCode} className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">Download</button>
+        <button onClick={handleUndo} className="px-6 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700">Undo</button>
+        <button onClick={handleRedo} className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-700">Redo</button>
+        <button onClick={handleDownloadHTML} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-800">Download HTML</button>
       </div>
 
-      {/* Output and Change Log Side by Side */}
+      {/* Output and Change Log */}
       <div className="flex w-full space-x-4 mt-4">
         {/* Left: Output Preview */}
         <iframe id="outputFrame" title="Output" className="w-1/2 h-72 border bg-gray-300 rounded"></iframe>
