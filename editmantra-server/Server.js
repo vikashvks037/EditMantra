@@ -123,13 +123,6 @@ io.on("connection", (socket) => {
     console.log(`User joined room: ${roomId}`);
   });
 
-  socket.on(ACTIONS.CODE_CHANGE, ({ roomId, code, username }) => {
-  console.log(`Code changed by ${username}:`, code);
-
-  // Broadcast code change along with the username
-  socket.to(roomId).emit(ACTIONS.CODE_CHANGE, { code, username });
-  });
-
   socket.on(ACTIONS.CODE_CHANGE, ({ roomId, code }) => {
     socket.to(roomId).emit(ACTIONS.CODE_CHANGE, { code });
   });
@@ -167,7 +160,6 @@ io.on("connection", (socket) => {
     delete userSocketMap[socket.id];
   });
 });
-
 
 const JWT_SECRET = 'your_secret_key';
 
