@@ -53,7 +53,7 @@ const Editor = () => {
     editorRef.current.setValue(code);
     editorRef.current.focus();
 
-    let prevCode = code; // Store last state
+    let prevCode = code;
 
     editorRef.current.on("change", (instance) => {
       const newCode = instance.getValue();
@@ -145,11 +145,13 @@ const Editor = () => {
 
   return (
     <div className="p-2 shadow-lg flex-col">
+      {/* Code Editor */}
       <textarea
         id="realtimeEditor"
         className="w-full h-72 text-base font-mono text-white bg-transparent border-2 focus:outline-none transition-all"
       ></textarea>
 
+      {/* Buttons */}
       <div className="flex mb-1 mt-1 font-bold">
         <div className="flex space-x-6">
           <button
@@ -167,27 +169,30 @@ const Editor = () => {
         </div>
       </div>
 
-      <div className="flex w-full">
+      {/* Output and Change Log Side by Side */}
+      <div className="flex w-full space-x-4 mt-4">
+        {/* Left: Output Preview */}
         <iframe
           id="outputFrame"
           title="Output"
-          className="w-1/2 h-72 border bg-green-300"
+          className="w-1/2 h-72 border bg-green-300 rounded"
         ></iframe>
-      </div>
 
-      <div className="p-2 bg-gray-800 text-white mt-2 h-40 overflow-y-scroll">
-        <h3 className="text-lg font-bold">Change Log:</h3>
-        <ul>
-          {changeLog.map((change, index) => (
-            <li key={index} className="mb-2">
-              <strong>{change.time}</strong>
-              <p className="text-sm text-yellow-400">Previous Code:</p>
-              <pre className="bg-gray-900 p-2 text-xs rounded">{change.oldCode}</pre>
-              <p className="text-sm text-green-400">New Code:</p>
-              <pre className="bg-gray-900 p-2 text-xs rounded">{change.newCode}</pre>
-            </li>
-          ))}
-        </ul>
+        {/* Right: Change Log */}
+        <div className="w-1/2 p-2 bg-gray-800 text-white h-72 overflow-y-scroll rounded">
+          <h3 className="text-lg font-bold">Change Log:</h3>
+          <ul>
+            {changeLog.map((change, index) => (
+              <li key={index} className="mb-2">
+                <strong>{change.time}</strong>
+                <p className="text-sm text-yellow-400">Previous Code:</p>
+                <pre className="bg-gray-900 p-2 text-xs rounded">{change.oldCode}</pre>
+                <p className="text-sm text-green-400">New Code:</p>
+                <pre className="bg-gray-900 p-2 text-xs rounded">{change.newCode}</pre>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
