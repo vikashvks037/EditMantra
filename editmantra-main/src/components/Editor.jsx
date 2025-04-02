@@ -13,18 +13,16 @@ const defaultCode = `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Default HTML, CSS, and JS Template</title>
+    <title>Default Template</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; }
-        .container { width: 80%; margin: 0 auto; padding: 20px; }
-        button { background-color: #4CAF50; color: white; padding: 10px; }
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; text-align: center; padding: 20px; }
+        button { background-color: #4CAF50; color: white; padding: 10px; border: none; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <button onclick="changeText()">Click Me</button>
-        <p id="text">This is some text.</p>
-    </div>
+    <h2>Live Code Editor</h2>
+    <button onclick="changeText()">Click Me</button>
+    <p id="text">This is some text.</p>
     <script>
         function changeText() {
             document.getElementById('text').innerHTML = "Text changed!";
@@ -39,16 +37,13 @@ const Editor = () => {
   const [changeLog, setChangeLog] = useState([]);
 
   useEffect(() => {
-    editorRef.current = Codemirror.fromTextArea(
-      document.getElementById("realtimeEditor"),
-      {
-        mode: "htmlmixed",
-        theme: "dracula",
-        autoCloseTags: true,
-        autoCloseBrackets: true,
-        lineNumbers: true,
-      }
-    );
+    editorRef.current = Codemirror.fromTextArea(document.getElementById("realtimeEditor"), {
+      mode: "htmlmixed",
+      theme: "dracula",
+      autoCloseTags: true,
+      autoCloseBrackets: true,
+      lineNumbers: true,
+    });
 
     editorRef.current.setValue(code);
     editorRef.current.focus();
@@ -57,16 +52,12 @@ const Editor = () => {
 
     editorRef.current.on("change", (instance) => {
       const newCode = instance.getValue();
-
+      
       if (newCode !== prevCode) {
         const timestamp = new Date().toLocaleTimeString();
         setChangeLog((prevLog) => [
           ...prevLog,
-          {
-            time: timestamp,
-            oldCode: prevCode,
-            newCode: newCode,
-          },
+          { time: timestamp, oldCode: prevCode, newCode },
         ]);
 
         prevCode = newCode;
@@ -87,7 +78,6 @@ const Editor = () => {
     };
 
     window.addEventListener("storage", storageListener);
-
     return () => {
       window.removeEventListener("storage", storageListener);
       editorRef.current?.toTextArea();
@@ -99,12 +89,8 @@ const Editor = () => {
     const doc = iframe.contentDocument || iframe.contentWindow.document;
 
     const htmlCode = editorRef.current.getValue();
-    const cssCode = htmlCode.match(/<style>(.*?)<\/style>/s)
-      ? htmlCode.match(/<style>(.*?)<\/style>/s)[1]
-      : "";
-    const jsCode = htmlCode.match(/<script>(.*?)<\/script>/s)
-      ? htmlCode.match(/<script>(.*?)<\/script>/s)[1]
-      : "";
+    const cssCode = htmlCode.match(/<style>(.*?)<\/style>/s) ? htmlCode.match(/<style>(.*?)<\/style>/s)[1] : "";
+    const jsCode = htmlCode.match(/<script>(.*?)<\/script>/s) ? htmlCode.match(/<script>(.*?)<\/script>/s)[1] : "";
 
     const fullCode = `
       <!DOCTYPE html>
@@ -116,16 +102,9 @@ const Editor = () => {
         <style>${cssCode}</style>
       </head>
       <body>
-        ${htmlCode.replace(/<style>.*?<\/style>/s, "").replace(
-          /<script>.*?<\/script>/s,
-          ""
-        )}
+        ${htmlCode.replace(/<style>.*?<\/style>/s, "").replace(/<script>.*?<\/script>/s, "")}
         <script>
-          try { 
-            ${jsCode} 
-          } catch (error) {
-            console.error("Error in JavaScript:", error);
-          }
+          try { ${jsCode} } catch (error) { console.error("Error in JavaScript:", error); }
         </script>
       </body>
       </html>
@@ -136,59 +115,49 @@ const Editor = () => {
     doc.close();
   };
 
+  const handleDownloadCode = () => {
+    const blob = new Blob([code], { type: "text/html" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "index.html";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleClearScreen = () => {
     setCode("");
-    if (editorRef.current) {
-      editorRef.current.setValue("");
-    }
+    editorRef.current?.setValue("");
   };
 
   return (
     <div className="p-2 shadow-lg flex-col">
       {/* Code Editor */}
-      <textarea
-        id="realtimeEditor"
-        className="w-full h-72 text-base font-mono text-white bg-transparent border-2 focus:outline-none transition-all"
-      ></textarea>
+      <textarea id="realtimeEditor" className="w-full h-72 text-base font-mono text-white bg-transparent border-2"></textarea>
 
       {/* Buttons */}
-      <div className="flex mb-1 mt-1 font-bold">
-        <div className="flex space-x-6">
-          <button
-            onClick={handleViewResult}
-            className="px-12 py-2 bg-pink-500 text-white rounded-sm hover:bg-pink-700"
-          >
-            View
-          </button>
-          <button
-            onClick={handleClearScreen}
-            className="px-10 py-2 bg-red-700 text-white rounded-sm hover:bg-red-900"
-          >
-            Clear Screen
-          </button>
-        </div>
+      <div className="flex space-x-6 my-2">
+        <button onClick={handleViewResult} className="px-6 py-2 bg-pink-500 text-white rounded hover:bg-pink-700">Run</button>
+        <button onClick={handleClearScreen} className="px-6 py-2 bg-red-700 text-white rounded hover:bg-red-900">Clear</button>
+        <button onClick={handleDownloadCode} className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">Download</button>
       </div>
 
       {/* Output and Change Log Side by Side */}
       <div className="flex w-full space-x-4 mt-4">
         {/* Left: Output Preview */}
-        <iframe
-          id="outputFrame"
-          title="Output"
-          className="w-1/2 h-72 border bg-green-300 rounded"
-        ></iframe>
+        <iframe id="outputFrame" title="Output" className="w-1/2 h-72 border bg-gray-300 rounded"></iframe>
 
         {/* Right: Change Log */}
         <div className="w-1/2 p-2 bg-gray-800 text-white h-72 overflow-y-scroll rounded">
           <h3 className="text-lg font-bold">Change Log:</h3>
           <ul>
             {changeLog.map((change, index) => (
-              <li key={index} className="mb-2">
-                <strong>{change.time}</strong>
-                <p className="text-sm text-yellow-400">Previous Code:</p>
-                <pre className="bg-gray-900 p-2 text-xs rounded">{change.oldCode}</pre>
-                <p className="text-sm text-green-400">New Code:</p>
-                <pre className="bg-gray-900 p-2 text-xs rounded">{change.newCode}</pre>
+              <li key={index} className="mb-2 border-b border-gray-700 pb-2">
+                <strong className="text-yellow-400">{change.time}</strong>
+                <p className="text-sm text-gray-400 mt-1">Previous Code:</p>
+                <pre className="bg-gray-900 p-2 text-xs rounded overflow-x-auto">{change.oldCode}</pre>
+                <p className="text-sm text-green-400 mt-1">New Code:</p>
+                <pre className="bg-gray-900 p-2 text-xs rounded overflow-x-auto">{change.newCode}</pre>
               </li>
             ))}
           </ul>
