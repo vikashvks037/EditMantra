@@ -49,7 +49,7 @@ const PORT = process.env.PORT || 5000;
 // Initialize Socket.io with CORS configuration
 const io = socketIo(server, {
   cors: {
-    origin: "https://editmantra-frontend.onrender.com", // Replace with your client-side URL
+    origin: "https://editmantra-coding-and-learning.onrender.com", // Replace with your client-side URL
     methods: ["GET", "POST"]
   }
 });
@@ -57,7 +57,7 @@ const io = socketIo(server, {
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'https://editmantra-frontend.onrender.com', // Allow requests from the frontend (adjust this URL if needed)
+  origin: process.env.FRONTEND_URL || 'https://editmantra-coding-and-learning.onrender.com', // Allow requests from the frontend (adjust this URL if needed)
   methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allow these HTTP methods
   allowedHeaders: ['Content-Type', 'Authorization'], // Allow these headers
 }));
