@@ -27,6 +27,7 @@ const Editor = () => {
   const [code, setCode] = useState(defaultHTMLCode);
   const [selectedLanguage, setSelectedLanguage] = useState('html');
   const [output, setOutput] = useState('');
+  const [showOutput, setShowOutput] = useState(false);
   const [history, setHistory] = useState([]);
   const [future, setFuture] = useState([]);
 
@@ -77,6 +78,8 @@ const Editor = () => {
   }, [selectedLanguage]);
 
   const handleViewResult = async () => {
+    setShowOutput(false); // Hide output first
+
     if (selectedLanguage === 'html') {
       const iframe = document.getElementById("outputFrame");
       const doc = iframe.contentDocument || iframe.contentWindow.document;
@@ -87,9 +90,7 @@ const Editor = () => {
       try {
         const response = await fetch('https://editmantra-backend.onrender.com/python-collaboration', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code: editorRef.current.getValue() }),
         });
 
@@ -101,10 +102,15 @@ const Editor = () => {
     }
   };
 
+  const handleShowOutput = () => {
+    setShowOutput(true);
+  };
+
   const handleClear = () => {
     setHistory((prev) => [...prev, code]);
     setCode('');
     setOutput('');
+    setShowOutput(false);
     editorRef.current.setValue('');
   };
 
@@ -123,6 +129,8 @@ const Editor = () => {
     setSelectedLanguage(newLang);
     const newCode = newLang === 'python' ? defaultPythonCode : defaultHTMLCode;
     setCode(newCode);
+    setOutput('');
+    setShowOutput(false);
   };
 
   const handleDownload = () => {
@@ -152,15 +160,20 @@ const Editor = () => {
         <button onClick={handleClear} className="px-4 py-2 bg-red-600 text-white rounded">Clear</button>
         <button onClick={handleUndo} className="px-4 py-2 bg-yellow-500 text-white rounded">Undo</button>
         <button onClick={handleDownload} className="px-4 py-2 bg-blue-600 text-white rounded">Download</button>
+        {selectedLanguage === 'python' && (
+          <button onClick={handleShowOutput} className="px-4 py-2 bg-purple-600 text-white rounded">Show Python Output</button>
+        )}
       </div>
 
       {/* Output */}
       {selectedLanguage === 'html' ? (
         <iframe id="outputFrame" className="w-full h-72 border" title="HTML Output" />
       ) : (
-        <div className="w-full h-72 p-4 overflow-auto bg-gray-900 text-white rounded">
-          {output || "Python output will appear here..."}
-        </div>
+        showOutput && (
+          <div className="w-full h-72 p-4 overflow-auto bg-gray-900 text-white rounded">
+            {output || "Python output will appear here..."}
+          </div>
+        )
       )}
     </div>
   );
