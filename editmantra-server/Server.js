@@ -16,7 +16,8 @@ const User = require('./models/User'); // Ensure path correctness
 const Admin = require('./models/Admin'); // Ensure path correctness
 const Question = require('./models/Question');
 const MCQQuestion = require('./models/mcqQuestion');
-const aiRoutes = require('./routes/ai.routes')
+const aiRoutes = require('./routes/ai.routes');
+const { PythonShell } = require('python-shell');
 
 
 
