@@ -122,6 +122,8 @@ const Editor = () => {
   };
 
   const handleShowOutput = async () => {
+    console.log("Fetching Python output...");
+
     try {
       const response = await fetch('https://editmantra-backend.onrender.com/python-collaboration', {
         method: 'POST',
@@ -129,10 +131,25 @@ const Editor = () => {
         body: JSON.stringify({ code: editorRef.current.getValue() }),
       });
 
+      console.log("Response received from backend:", response);
+
+      if (!response.ok) {
+        console.log("Error response:", response);
+        throw new Error('Failed to execute Python code.');
+      }
+
       const data = await response.json();
-      setOutput(data.output || `Error: ${data.error}`);
+      console.log("Backend data:", data);
+
+      if (data.error) {
+        setOutput(data.error);
+      } else {
+        setOutput(data.output);
+      }
+
       setShowOutput(true);
     } catch (error) {
+      console.error("Error executing Python code:", error);
       setOutput("Execution error: " + error.message);
       setShowOutput(true);
     }
