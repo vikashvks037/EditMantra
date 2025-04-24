@@ -689,16 +689,15 @@ app.post("/compile", async (req, res) => {
   }
 });
 
-// Route to execute Python code
-app.post('/python-collaboration', (req, res) => {
-  const { code } = req.body;
+// Python script execution endpoint
+app.post('/execute-python', (req, res) => {
+  const { scriptPath, args } = req.body;
 
-  // Use PythonShell to execute the Python code
-  PythonShell.runString(code, null, function (err, result) {
+  PythonShell.run(scriptPath, { args }, (err, results) => {
     if (err) {
-      return res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: 'Error executing Python script', details: err });
     }
-    res.json({ output: result.join('\n') }); // Return the output from the Python code execution
+    res.json({ output: results });
   });
 });
 
