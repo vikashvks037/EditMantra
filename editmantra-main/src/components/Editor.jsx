@@ -122,6 +122,10 @@ const Editor = () => {
   };
 
   const handleShowOutput = async () => {
+    // Only proceed if the selected language is Python
+    if (selectedLanguage !== 'python') return;
+
+    // Log to confirm the function is triggered
     console.log("Fetching Python output...");
 
     try {
@@ -131,27 +135,28 @@ const Editor = () => {
         body: JSON.stringify({ code: editorRef.current.getValue() }),
       });
 
-      console.log("Response received from backend:", response);
-
+      // Check if response is okay
       if (!response.ok) {
-        console.log("Error response:", response);
+        console.error("Error response:", response);
         throw new Error('Failed to execute Python code.');
       }
 
       const data = await response.json();
       console.log("Backend data:", data);
 
+      // If there's an error in the output, show it
       if (data.error) {
         setOutput(data.error);
       } else {
+        // Otherwise, show the output
         setOutput(data.output);
       }
 
-      setShowOutput(true);
+      setShowOutput(true);  // Show the output section
     } catch (error) {
       console.error("Error executing Python code:", error);
       setOutput("Execution error: " + error.message);
-      setShowOutput(true);
+      setShowOutput(true);  // Ensure output section is shown even when error occurs
     }
   };
 
@@ -175,7 +180,7 @@ const Editor = () => {
         <button onClick={handleUndo} className="px-4 py-2 bg-yellow-500 text-white rounded">Undo</button>
         <button onClick={handleDownload} className="px-4 py-2 bg-blue-600 text-white rounded">Download</button>
 
-        {/* Python Output Button */}
+        {/* Python Output Button (Visible only when Python is selected) */}
         {selectedLanguage === 'python' && (
           <button onClick={handleShowOutput} className="px-4 py-2 bg-purple-600 text-white rounded">
             Show Python Output
