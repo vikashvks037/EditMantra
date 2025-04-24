@@ -39,6 +39,7 @@ const Editor = () => {
   const [changeLog, setChangeLog] = useState([]);
   const [history, setHistory] = useState([]);
   const [future, setFuture] = useState([]);
+  const lastUpdated = useRef(Date.now()); // Track last update time for periodic log
 
   useEffect(() => {
     // Initialize socket connection
@@ -60,24 +61,13 @@ const Editor = () => {
       const prevCode = prevCodeRef.current;
 
       if (newCode !== prevCode) {
-        const timestamp = new Date().toLocaleTimeString();
-        
-        setChangeLog((prevLog) => [
-          ...prevLog,
-          { time: timestamp, oldCode: prevCode, newCode },
-        ]);
-
-        setHistory((prevHistory) => [...prevHistory, prevCode]);
-        setFuture([]); // Clear redo stack when a new change is made
-
         prevCodeRef.current = newCode; // Update previous code reference
+        setCode(newCode);
+        localStorage.setItem("sharedCode", newCode);
+
+        // Emit the updated code to all connected users
+        socket.emit("codeChange", newCode);
       }
-
-      setCode(newCode);
-      localStorage.setItem("sharedCode", newCode);
-
-      // Emit the updated code to all connected users
-      socket.emit("codeChange", newCode);
     });
 
     const storageListener = (event) => {
@@ -100,10 +90,25 @@ const Editor = () => {
 
     window.addEventListener("storage", storageListener);
 
+    // Periodically update the change log every 1 minute
+    const interval = setInterval(() => {
+      const currentTime = Date.now();
+      // Check if 1 minute has passed since the last update
+      if (currentTime - lastUpdated.current >= 60000) {
+        const timestamp = new Date().toLocaleTimeString();
+        setChangeLog((prevLog) => [
+          ...prevLog,
+          { time: timestamp, oldCode: prevCodeRef.current, newCode: editorRef.current.getValue() },
+        ]);
+        lastUpdated.current = currentTime;
+      }
+    }, 60000);
+
     return () => {
       window.removeEventListener("storage", storageListener);
       socket.disconnect(); // Cleanup socket connection
       editorRef.current?.toTextArea();
+      clearInterval(interval); // Cleanup the interval when component unmounts
     };
   }, []);
 
@@ -168,7 +173,7 @@ const Editor = () => {
       <div className="flex space-x-6 my-2">
         <button onClick={handleViewResult} className="px-6 py-2 bg-pink-500 text-white rounded hover:bg-pink-700">Run</button>
         <button onClick={handleUndo} className="px-6 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700">Undo</button>
-        <button onClick={handleDownloadHTML} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-800">Download HTML</button>
+        <button onClick={handleDownloadHTML} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-800">Download Code</button>
       </div>
 
       {/* Output and Change Log */}
