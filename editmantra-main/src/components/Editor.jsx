@@ -6,46 +6,42 @@ import "codemirror/theme/dracula.css";
 import "codemirror/mode/javascript/javascript";
 import "codemirror/mode/htmlmixed/htmlmixed";
 import "codemirror/mode/css/css";
+import "codemirror/mode/python/python";
 import "codemirror/addon/edit/closetag";
 import "codemirror/addon/edit/closebrackets";
 
-const defaultCode = `<!DOCTYPE html>
+const defaultHTMLCode = `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Editor</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; text-align: center; padding: 20px; }
-        button { background-color: #4CAF50; color: white; padding: 10px; border: none; cursor: pointer; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Editor</title>
 </head>
 <body>
-    <h2>Live Code Editor</h2>
-    <button onclick="changeText()">Click Me</button>
-    <p id="text">This is some text.</p>
-    <script>
-        function changeText() {
-            document.getElementById('text').innerHTML = "Text changed!";
-        }
-    </script>
+  <h2>Live Code Editor</h2>
+  <button onclick="changeText()">Click Me</button>
+  <p id="text">This is some text.</p>
+  <script>
+    function changeText() {
+      document.getElementById('text').innerHTML = "Text changed!";
+    }
+  </script>
 </body>
 </html>`;
 
+const defaultPythonCode = `print("Hello from Python!")`;
+
 const Editor = () => {
   const editorRef = useRef(null);
-  const prevCodeRef = useRef(defaultCode); // Store previous code
-  const [code, setCode] = useState(defaultCode);
-  const [changeLog, setChangeLog] = useState([]);
-  const [history, setHistory] = useState([]);
-  const [future, setFuture] = useState([]);
+  const [language, setLanguage] = useState("html");
+  const [code, setCode] = useState(defaultHTMLCode);
+  const [pythonOutput, setPythonOutput] = useState("");
 
   useEffect(() => {
-    // Initialize socket connection
     const socket = initSocket();
-    
+
     editorRef.current = Codemirror.fromTextArea(document.getElementById("realtimeEditor"), {
-      mode: "htmlmixed",
+      mode: language === "python" ? "python" : "htmlmixed",
       theme: "dracula",
       autoCloseTags: true,
       autoCloseBrackets: true,
@@ -53,30 +49,10 @@ const Editor = () => {
     });
 
     editorRef.current.setValue(code);
-    editorRef.current.focus();
-
     editorRef.current.on("change", (instance) => {
       const newCode = instance.getValue();
-      const prevCode = prevCodeRef.current;
-
-      if (newCode !== prevCode) {
-        const timestamp = new Date().toLocaleTimeString();
-        
-        setChangeLog((prevLog) => [
-          ...prevLog,
-          { time: timestamp, oldCode: prevCode, newCode },
-        ]);
-
-        setHistory((prevHistory) => [...prevHistory, prevCode]);
-        setFuture([]); // Clear redo stack when a new change is made
-
-        prevCodeRef.current = newCode; // Update previous code reference
-      }
-
       setCode(newCode);
       localStorage.setItem("sharedCode", newCode);
-
-      // Emit the updated code to all connected users
       socket.emit("codeChange", newCode);
     });
 
@@ -90,7 +66,6 @@ const Editor = () => {
       }
     };
 
-    // Listen for real-time code updates from the socket
     socket.on("codeChange", (updatedCode) => {
       if (updatedCode !== editorRef.current.getValue()) {
         editorRef.current.setValue(updatedCode);
@@ -102,96 +77,115 @@ const Editor = () => {
 
     return () => {
       window.removeEventListener("storage", storageListener);
-      socket.disconnect(); // Cleanup socket connection
+      socket.disconnect();
       editorRef.current?.toTextArea();
     };
-  }, []);
+  }, [language]);
 
-  const handleViewResult = () => {
-    const iframe = document.getElementById("outputFrame");
-    const doc = iframe.contentDocument || iframe.contentWindow.document;
-
-    const htmlCode = editorRef.current.getValue();
-    const cssCode = htmlCode.match(/<style>(.*?)<\/style>/s) ? htmlCode.match(/<style>(.*?)<\/style>/s)[1] : "";
-    const jsCode = htmlCode.match(/<script>(.*?)<\/script>/s) ? htmlCode.match(/<script>(.*?)<\/script>/s)[1] : "";
-
-    const fullCode = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Preview</title>
-        <style>${cssCode}</style>
-      </head>
-      <body>
-        ${htmlCode.replace(/<style>.*?<\/style>/s, "").replace(/<script>.*?<\/script>/s, "")}
-        <script>
-          try { ${jsCode} } catch (error) { console.error("Error in JavaScript:", error); }
-        </script>
-      </body>
-      </html>
-    `;
-
-    doc.open();
-    doc.write(fullCode);
-    doc.close();
+  const handleLanguageChange = (e) => {
+    const lang = e.target.value;
+    setLanguage(lang);
+    const initialCode = lang === "python" ? defaultPythonCode : defaultHTMLCode;
+    setCode(initialCode);
+    editorRef.current.setOption("mode", lang === "python" ? "python" : "htmlmixed");
+    editorRef.current.setValue(initialCode);
   };
 
-  const handleDownloadHTML = () => {
-    const htmlContent = editorRef.current.getValue();
-    const blob = new Blob([htmlContent], { type: "text/html" });
+  const handleRunCode = async () => {
+    if (language === "python") {
+      try {
+        const response = await fetch("https://editmantra-backend.onrender.com/compile", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ language: "python", code })
+        });
+        const data = await response.json();
+        setPythonOutput(data.output || data.error || "No output.");
+      } catch (error) {
+        setPythonOutput("Error connecting to backend.");
+      }
+    } else {
+      const iframe = document.getElementById("outputFrame");
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+
+      const cssCode = code.match(/<style>(.*?)<\/style>/s)?.[1] || "";
+      const jsCode = code.match(/<script>(.*?)<\/script>/s)?.[1] || "";
+      const htmlOnly = code
+        .replace(/<style>.*?<\/style>/s, "")
+        .replace(/<script>.*?<\/script>/s, "");
+
+      const fullCode = `
+        <!DOCTYPE html>
+        <html>
+        <head><style>${cssCode}</style></head>
+        <body>
+          ${htmlOnly}
+          <script>${jsCode}</script>
+        </body>
+        </html>
+      `;
+      doc.open();
+      doc.write(fullCode);
+      doc.close();
+    }
+  };
+
+  const handleClearOutput = () => {
+    if (language === "python") {
+      setPythonOutput("");
+    } else {
+      const iframe = document.getElementById("outputFrame");
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      doc.open();
+      doc.write("");
+      doc.close();
+    }
+  };
+
+  const handleDownloadCode = () => {
+    const blob = new Blob([code], {
+      type: language === "python" ? "text/x-python" : "text/html",
+    });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "code.html";
+    link.download = language === "python" ? "code.py" : "code.html";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  const handleUndo = () => {
-    if (history.length > 0) {
-      const prevCode = history[history.length - 1];
-      setFuture((prevFuture) => [code, ...prevFuture]);
-      setHistory((prevHistory) => prevHistory.slice(0, -1));
-      editorRef.current.setValue(prevCode);
-      setCode(prevCode);
-    }
-  };
-
   return (
-    <div className="p-2 shadow-lg flex-col">
+    <div className="p-4">
+      {/* Language selection and actions */}
+      <div className="flex flex-wrap items-center space-x-4 mb-4">
+        <select
+          value={language}
+          onChange={handleLanguageChange}
+          className="px-4 py-2 border rounded bg-white text-black"
+        >
+          <option value="html">HTML</option>
+          <option value="python">Python</option>
+        </select>
+        <button onClick={handleRunCode} className="bg-green-600 px-4 py-2 rounded text-white hover:bg-green-700">Run</button>
+        <button onClick={handleClearOutput} className="bg-red-500 px-4 py-2 rounded text-white hover:bg-red-700">Clear Output</button>
+        <button onClick={handleDownloadCode} className="bg-blue-600 px-4 py-2 rounded text-white hover:bg-blue-800">Download Code</button>
+      </div>
+
       {/* Code Editor */}
-      <textarea id="realtimeEditor" className="w-full h-72 text-base font-mono text-white bg-transparent border-2"></textarea>
+      <textarea id="realtimeEditor" className="w-full h-72 text-sm font-mono text-white bg-transparent border-2" />
 
-      {/* Buttons */}
-      <div className="flex space-x-6 my-2">
-        <button onClick={handleViewResult} className="px-6 py-2 bg-pink-500 text-white rounded hover:bg-pink-700">Run</button>
-        <button onClick={handleUndo} className="px-6 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700">Undo</button>
-        <button onClick={handleDownloadHTML} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-800">Download HTML</button>
-      </div>
-
-      {/* Output and Change Log */}
-      <div className="flex w-full space-x-4 mt-4">
-        {/* Left: Output Preview */}
-        <iframe id="outputFrame" title="Output" className="w-1/2 h-72 border bg-gray-300 rounded"></iframe>
-
-        {/* Right: Change Log */}
-        <div className="w-1/2 p-2 bg-gray-800 text-white h-72 overflow-y-scroll rounded">
-          <h3 className="text-lg font-bold">Change Log:</h3>
-          <ul>
-            {changeLog.map((change, index) => (
-              <li key={index} className="mb-2 border-b border-gray-700 pb-2">
-                <strong className="text-yellow-400">{change.time}</strong>
-                <p className="text-sm text-yellow-400">Previous Code:</p>
-                <pre className="bg-gray-900 p-2 text-xs rounded">{change.oldCode}</pre>
-                <p className="text-sm text-green-400 mt-1">New Code:</p>
-                <pre className="bg-gray-900 p-2 text-xs rounded overflow-x-auto">{change.newCode}</pre>
-              </li>
-            ))}
-          </ul>
+      {/* Output Area */}
+      {language === "html" && (
+        <iframe id="outputFrame" title="Output" className="w-full h-72 border mt-4 rounded bg-gray-100" />
+      )}
+      {language === "python" && (
+        <div className="mt-4 p-4 bg-gray-800 text-white rounded h-72 overflow-y-auto">
+          <h3 className="font-bold text-lg mb-2">Python Output:</h3>
+          <pre>{pythonOutput}</pre>
         </div>
-      </div>
+      )}
     </div>
   );
 };
