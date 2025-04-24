@@ -688,6 +688,19 @@ app.post("/compile", async (req, res) => {
   }
 });
 
+// Route to execute Python code
+app.post('/python-collaboration', (req, res) => {
+  const { code } = req.body;
+
+  // Use PythonShell to execute the Python code
+  PythonShell.runString(code, null, function (err, result) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ output: result.join('\n') }); // Return the output from the Python code execution
+  });
+});
+
 
 //Add Question (Admin Only)
 app.post('/api/admin/add-question', async (req, res) => {
