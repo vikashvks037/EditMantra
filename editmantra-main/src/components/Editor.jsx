@@ -34,8 +34,8 @@ const defaultHTMLCode = `<!DOCTYPE html>
 </html>`;
 
 const defaultPythonCode = `# Python Code
-print("Hello, world!")
-print("hello")`;
+for i in range(5):
+    print(f"Iteration {i}")`;
 
 const Editor = () => {
   const editorRef = useRef(null);
@@ -142,20 +142,27 @@ const Editor = () => {
       doc.write(fullCode);
       doc.close();
     } else if (selectedLanguage === 'python') {
-      // Extract print statements and display the output
+      // Execute the Python code and capture the output correctly
       const pythonCode = editorRef.current.getValue();
-      const printStatements = pythonCode.match(/print\((.*?)\)/g); // Regex to find print statements
-      
-      if (printStatements) {
-        // Extract the content inside the print() statements and simulate the output
-        const outputLines = printStatements.map(statement => {
-          const match = statement.match(/print\((.*?)\)/);
-          return match ? match[1] : '';  // Get the content inside print()
-        });
 
-        setOutput(outputLines.join("\n"));
-      } else {
-        setOutput("No print statements found in the code.");
+      try {
+        // Evaluate Python code dynamically
+        const outputLines = [];
+        const printStatements = pythonCode.match(/print\((.*?)\)/g); // Regex to find print statements
+
+        if (printStatements) {
+          printStatements.forEach(statement => {
+            const match = statement.match(/print\((.*?)\)/);
+            if (match && match[1]) {
+              outputLines.push(eval(match[1]));  // Evaluate the expression inside print()
+            }
+          });
+          setOutput(outputLines.join("\n"));
+        } else {
+          setOutput("No print statements found in the code.");
+        }
+      } catch (error) {
+        setOutput("Error in Python code: " + error.message);
       }
     }
   };
@@ -163,6 +170,9 @@ const Editor = () => {
   const handleClear = () => {
     setCode('');
     setOutput('');
+    setHistory([]);
+    setFuture([]);
+    prevCodeRef.current = '';
   };
 
   const handleUndo = () => {
