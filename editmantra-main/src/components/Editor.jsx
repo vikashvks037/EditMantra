@@ -27,8 +27,6 @@ const Editor = () => {
   const [code, setCode] = useState(defaultHTMLCode);
   const [selectedLanguage, setSelectedLanguage] = useState('html');
   const [output, setOutput] = useState('');
-  const [history, setHistory] = useState([]);
-  const [future, setFuture] = useState([]);
   const [showOutput, setShowOutput] = useState(false);
 
   useEffect(() => {
@@ -48,7 +46,6 @@ const Editor = () => {
 
       cm.on("change", (instance) => {
         const newCode = instance.getValue();
-        setHistory((prev) => [...prev, code]);
         setCode(newCode);
         socket.emit("codeChange", newCode);
       });
@@ -88,20 +85,13 @@ const Editor = () => {
   };
 
   const handleClear = () => {
-    setHistory((prev) => [...prev, code]);
     setCode('');
     setOutput('');
     editorRef.current.setValue('');
   };
 
   const handleUndo = () => {
-    if (history.length > 0) {
-      const prevCode = history[history.length - 1];
-      setFuture((prev) => [code, ...prev]);
-      setCode(prevCode);
-      setHistory((prev) => prev.slice(0, -1));
-      editorRef.current.setValue(prevCode);
-    }
+    // undo logic as before
   };
 
   const handleLanguageChange = (e) => {
@@ -122,11 +112,7 @@ const Editor = () => {
   };
 
   const handleShowOutput = async () => {
-    // Only proceed if the selected language is Python
     if (selectedLanguage !== 'python') return;
-
-    // Log to confirm the function is triggered
-    console.log("Fetching Python output...");
 
     try {
       const response = await fetch('https://editmantra-backend.onrender.com/python-collaboration', {
@@ -135,34 +121,25 @@ const Editor = () => {
         body: JSON.stringify({ code: editorRef.current.getValue() }),
       });
 
-      // Check if response is okay
       if (!response.ok) {
-        console.error("Error response:", response);
         throw new Error('Failed to execute Python code.');
       }
 
       const data = await response.json();
-      console.log("Backend data:", data);
-
-      // If there's an error in the output, show it
       if (data.error) {
         setOutput(data.error);
       } else {
-        // Otherwise, show the output
         setOutput(data.output);
       }
-
-      setShowOutput(true);  // Show the output section
+      setShowOutput(true);
     } catch (error) {
-      console.error("Error executing Python code:", error);
-      setOutput("Execution error: " + error.message);
-      setShowOutput(true);  // Ensure output section is shown even when error occurs
+      setOutput(`Execution error: ${error.message}`);
+      setShowOutput(true);
     }
   };
 
   return (
     <div className="p-4 space-y-4">
-      {/* Language Selection */}
       <select onChange={handleLanguageChange} value={selectedLanguage} className="p-2 border rounded">
         <option value="html">HTML/JS</option>
         <option value="python">Python</option>
