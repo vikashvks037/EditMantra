@@ -34,7 +34,8 @@ const defaultHTMLCode = `<!DOCTYPE html>
 </html>`;
 
 const defaultPythonCode = `# Python Code
-print("Hello, world!")`;
+print("Hello, world!")
+print("hello")`;
 
 const Editor = () => {
   const editorRef = useRef(null);
@@ -141,7 +142,21 @@ const Editor = () => {
       doc.write(fullCode);
       doc.close();
     } else if (selectedLanguage === 'python') {
-      setOutput("Python output: " + editorRef.current.getValue());
+      // Extract print statements and display the output
+      const pythonCode = editorRef.current.getValue();
+      const printStatements = pythonCode.match(/print\((.*?)\)/g); // Regex to find print statements
+      
+      if (printStatements) {
+        // Extract the content inside the print() statements and simulate the output
+        const outputLines = printStatements.map(statement => {
+          const match = statement.match(/print\((.*?)\)/);
+          return match ? match[1] : '';  // Get the content inside print()
+        });
+
+        setOutput(outputLines.join("\n"));
+      } else {
+        setOutput("No print statements found in the code.");
+      }
     }
   };
 
