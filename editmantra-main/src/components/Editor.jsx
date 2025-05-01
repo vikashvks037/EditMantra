@@ -172,7 +172,7 @@ const Editor = () => {
       {/* Buttons */}
       <div className="flex space-x-6 my-2">
         <button onClick={handleViewResult} className="px-6 py-2 bg-pink-500 text-white rounded hover:bg-pink-700">Run</button>
-        <button onClick={handleUndo} className="px-6 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700">Undo</button>
+{/*         <button onClick={handleUndo} className="px-6 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700">Undo</button> */}
         <button onClick={handleDownloadHTML} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-800">Download Code</button>
       </div>
 
@@ -190,8 +190,8 @@ const Editor = () => {
                 <strong className="text-yellow-400">{change.time}</strong>
                 <p className="text-sm text-yellow-400">Previous Code:</p>
                 <pre className="bg-gray-900 p-2 text-xs rounded">{change.oldCode}</pre>
-                <p className="text-sm text-green-400 mt-1">New Code:</p>
-                <pre className="bg-gray-900 p-2 text-xs rounded overflow-x-auto">{change.newCode}</pre>
+{/*                 <p className="text-sm text-green-400 mt-1">New Code:</p>
+                <pre className="bg-gray-900 p-2 text-xs rounded overflow-x-auto">{change.newCode}</pre> */}
               </li>
             ))}
           </ul>
