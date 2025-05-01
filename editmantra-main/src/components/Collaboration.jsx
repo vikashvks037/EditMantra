@@ -146,8 +146,8 @@ const Collaboration = () => {
         {/* Output */}
         {output && (
           <div className="output mt-4 p-4 rounded bg-gray-100 text-gray-800">
-            <h4 className="font-semibold">Execution Result:</h4>
-            <p>{output}</p>
+{/*             <h4 className="font-semibold">Execution Result:</h4>
+            <p>{output}</p> */}
           </div>
         )}
       </main>
