@@ -1,4 +1,3 @@
-import { initSocket } from '../socket';
 import React, { useEffect, useRef, useState } from "react";
 import Codemirror from "codemirror";
 import "codemirror/lib/codemirror.css";
@@ -8,114 +7,136 @@ import "codemirror/mode/htmlmixed/htmlmixed";
 import "codemirror/mode/css/css";
 import "codemirror/addon/edit/closetag";
 import "codemirror/addon/edit/closebrackets";
+import io from "socket.io-client";
 
-const defaultCode = <!DOCTYPE html>
+const ACTIONS = {
+  CODE_CHANGE: "code-change",
+  JOIN_ROOM: "join-room",
+};
+
+const socket = io("https://editmantra-backend.onrender.com"); // Replace with your backend's URL
+
+const defaultCode = {
+  htmlmixed: `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Editor</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; text-align: center; padding: 20px; }
-        button { background-color: #4CAF50; color: white; padding: 10px; border: none; cursor: pointer; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
 </head>
 <body>
-    <h2>Live Code Editor</h2>
-    <button onclick="changeText()">Click Me</button>
-    <p id="text">This is some text.</p>
-    <script>
-        function changeText() {
-            document.getElementById('text').innerHTML = "Text changed!";
-        }
-    </script>
+  <h1>Hello, World!</h1>
 </body>
-</html>;
+</html>`,
+  css: `body {
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
+}`,
+  javascript: `console.log('Hello, World!');`,
+};
 
-const Editor = () => {
+const Editor = ({ roomId }) => {
   const editorRef = useRef(null);
-  const prevCodeRef = useRef(defaultCode); // Store previous code
-  const [code, setCode] = useState(defaultCode);
-  const [changeLog, setChangeLog] = useState([]);
-  const [history, setHistory] = useState([]);
-  const [future, setFuture] = useState([]);
+  const [language, setLanguage] = useState("htmlmixed");
+  const [code, setCode] = useState(defaultCode["htmlmixed"]);
+  const [consoleOutput, setConsoleOutput] = useState([]); // Store console logs
+  const [isLocalChange, setIsLocalChange] = useState(false); // Track local changes
 
+  // Initialize CodeMirror editor
   useEffect(() => {
-    // Initialize socket connection
-    const socket = initSocket();
-    
-    editorRef.current = Codemirror.fromTextArea(document.getElementById("realtimeEditor"), {
-      mode: "htmlmixed",
-      theme: "dracula",
-      autoCloseTags: true,
-      autoCloseBrackets: true,
-      lineNumbers: true,
-    });
+    editorRef.current = Codemirror.fromTextArea(
+      document.getElementById("realtimeEditor"),
+      {
+        mode: language,
+        theme: "dracula",
+        autoCloseTags: true,
+        autoCloseBrackets: true,
+        lineNumbers: true,
+      }
+    );
 
     editorRef.current.setValue(code);
-    editorRef.current.focus();
 
     editorRef.current.on("change", (instance) => {
       const newCode = instance.getValue();
-      const prevCode = prevCodeRef.current;
-
-      if (newCode !== prevCode) {
-        const timestamp = new Date().toLocaleTimeString();
-        
-        setChangeLog((prevLog) => [
-          ...prevLog,
-          { time: timestamp, oldCode: prevCode, newCode },
-        ]);
-
-        setHistory((prevHistory) => [...prevHistory, prevCode]);
-        setFuture([]); // Clear redo stack when a new change is made
-
-        prevCodeRef.current = newCode; // Update previous code reference
-      }
-
       setCode(newCode);
-      localStorage.setItem("sharedCode", newCode);
-
-      // Emit the updated code to all connected users
-      socket.emit("codeChange", newCode);
+      setIsLocalChange(true);
     });
-
-    const storageListener = (event) => {
-      if (event.key === "sharedCode") {
-        const newCode = event.newValue;
-        if (newCode && newCode !== editorRef.current.getValue()) {
-          editorRef.current.setValue(newCode);
-          setCode(newCode);
-        }
-      }
-    };
-
-    // Listen for real-time code updates from the socket
-    socket.on("codeChange", (updatedCode) => {
-      if (updatedCode !== editorRef.current.getValue()) {
-        editorRef.current.setValue(updatedCode);
-        setCode(updatedCode);
-      }
-    });
-
-    window.addEventListener("storage", storageListener);
 
     return () => {
-      window.removeEventListener("storage", storageListener);
-      socket.disconnect(); // Cleanup socket connection
       editorRef.current?.toTextArea();
     };
-  }, []);
+  }, [language]);
 
+  // Emit code changes to the socket
+  useEffect(() => {
+    if (isLocalChange) {
+      socket.emit(ACTIONS.CODE_CHANGE, { roomId, code });
+      setIsLocalChange(false);
+    }
+  }, [code, roomId, isLocalChange]);
+
+  // Handle socket updates
+  useEffect(() => {
+    socket.emit(ACTIONS.JOIN_ROOM, { roomId });
+
+    socket.on(ACTIONS.CODE_CHANGE, ({ code: newCode }) => {
+      if (newCode !== editorRef.current.getValue()) {
+        editorRef.current.setValue(newCode);
+        setCode(newCode);
+      }
+    });
+
+    return () => {
+      socket.off(ACTIONS.CODE_CHANGE);
+    };
+  }, [roomId]);
+
+  // Auto-update editor content every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (editorRef.current && editorRef.current.getValue() !== code) {
+        editorRef.current.setValue(code);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [code]);
+
+  // Handle language change
+  const handleLanguageChange = (e) => {
+    const newLanguage = e.target.value;
+    setLanguage(newLanguage);
+    const newCode = defaultCode[newLanguage];
+    setCode(newCode);
+    if (editorRef.current) {
+      editorRef.current.setOption("mode", newLanguage);
+      editorRef.current.setValue(newCode);
+    }
+  };
+
+  // Clear editor
+  const handleClearScreen = () => {
+    setCode("");
+    if (editorRef.current) {
+      editorRef.current.setValue("");
+    }
+  };
+
+  // Display merged result
   const handleViewResult = () => {
     const iframe = document.getElementById("outputFrame");
     const doc = iframe.contentDocument || iframe.contentWindow.document;
 
-    const htmlCode = editorRef.current.getValue();
-    const cssCode = htmlCode.match(/<style>(.*?)<\/style>/s) ? htmlCode.match(/<style>(.*?)<\/style>/s)[1] : "";
-    const jsCode = htmlCode.match(/<script>(.*?)<\/script>/s) ? htmlCode.match(/<script>(.*?)<\/script>/s)[1] : "";
+    const htmlCode =
+      language === "htmlmixed" ? editorRef.current.getValue() : defaultCode.htmlmixed;
+    const cssCode =
+      language === "css" ? editorRef.current.getValue() : defaultCode.css;
+    const jsCode =
+      language === "javascript" ? editorRef.current.getValue() : defaultCode.javascript;
 
-    const fullCode = 
+    const fullCode = `
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -124,73 +145,82 @@ const Editor = () => {
         <title>Preview</title>
         <style>${cssCode}</style>
       </head>
-      <body>
-        ${htmlCode.replace(/<style>.*?<\/style>/s, "").replace(/<script>.*?<\/script>/s, "")}
+      <body>${htmlCode}
         <script>
-          try { ${jsCode} } catch (error) { console.error("Error in JavaScript:", error); }
+          try { ${jsCode} } catch (error) {
+            console.error("Error in JavaScript:", error);
+          }
         </script>
       </body>
       </html>
-    ;
+    `;
 
     doc.open();
     doc.write(fullCode);
     doc.close();
   };
 
-  const handleDownloadHTML = () => {
-    const htmlContent = editorRef.current.getValue();
-    const blob = new Blob([htmlContent], { type: "text/html" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "code.html";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  // Execute JavaScript and log output
+  const handleConsoleOutput = () => {
+    const jsCode = editorRef.current.getValue();
+    const iframe = document.createElement("iframe");
+    document.body.appendChild(iframe);
+    const iframeWindow = iframe.contentWindow;
+
+    iframeWindow.console.log = (message) => {
+      setConsoleOutput((prev) => [...prev, `> ${message}`]);
+    };
+
+    try {
+      iframeWindow.eval(jsCode);
+    } catch (error) {
+      setConsoleOutput((prev) => [...prev, `Error: ${error.message}`]);
+    }
+
+    document.body.removeChild(iframe);
   };
 
-  const handleUndo = () => {
-    if (history.length > 0) {
-      const prevCode = history[history.length - 1];
-      setFuture((prevFuture) => [code, ...prevFuture]);
-      setHistory((prevHistory) => prevHistory.slice(0, -1));
-      editorRef.current.setValue(prevCode);
-      setCode(prevCode);
-    }
-  };
+  // Clear console output
+  const clearConsole = () => setConsoleOutput([]);
 
   return (
-    <div className="p-2 shadow-lg flex-col">
-      {/* Code Editor */}
-      <textarea id="realtimeEditor" className="w-full h-72 text-base font-mono text-white bg-transparent border-2"></textarea>
+    <div className="p-1 shadow-lg flex-col">
+      <div className="flex mb-1 font-bold">
+        <select
+          value={language}
+          onChange={handleLanguageChange}
+          className="p-1 mr-2 border text-center rounded-sm focus:outline-none text-cyan-700 font-bold"
+        >
+          <option value="htmlmixed">HTML</option>
+          <option value="css">CSS</option>
+          <option value="javascript">JavaScript</option>
+        </select>
 
-      {/* Buttons */}
-      <div className="flex space-x-6 my-2">
-        <button onClick={handleViewResult} className="px-6 py-2 bg-pink-500 text-white rounded hover:bg-pink-700">Run</button>
-        <button onClick={handleUndo} className="px-6 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-700">Undo</button>
-        <button onClick={handleDownloadHTML} className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-800">Download HTML</button>
+        <div className="flex space-x-6 ml-96">
+          <button onClick={handleViewResult} className="px-4 py-2 bg-pink-500 text-white rounded-sm hover:bg-pink-700">
+            View Result
+          </button>
+          <button onClick={handleConsoleOutput} className="px-4 py-2 bg-cyan-600 text-white rounded-sm hover:bg-cyan-800">
+            Console Output
+          </button>
+          <button onClick={clearConsole} className="px-4 py-2 bg-purple-600 text-white rounded-sm hover:bg-purple-500">
+            Clear Console
+          </button>
+          <button onClick={handleClearScreen} className="px-4 py-2 bg-red-700 text-white rounded-sm hover:bg-red-900">
+            Clear Screen
+          </button>
+        </div>
       </div>
 
-      {/* Output and Change Log */}
-      <div className="flex w-full space-x-4 mt-4">
-        {/* Left: Output Preview */}
-        <iframe id="outputFrame" title="Output" className="w-1/2 h-72 border bg-gray-300 rounded"></iframe>
+      <textarea id="realtimeEditor" className="w-full h-72 text-base font-mono text-white bg-transparent border-2 focus:outline-none transition-all"></textarea>
 
-        {/* Right: Change Log */}
-        <div className="w-1/2 p-2 bg-gray-800 text-white h-72 overflow-y-scroll rounded">
-          <h3 className="text-lg font-bold">Change Log:</h3>
-          <ul>
-            {changeLog.map((change, index) => (
-              <li key={index} className="mb-2 border-b border-gray-700 pb-2">
-                <strong className="text-yellow-400">{change.time}</strong>
-                <p className="text-sm text-yellow-400">Previous Code:</p>
-                <pre className="bg-gray-900 p-2 text-xs rounded">{change.oldCode}</pre>
-                <p className="text-sm text-green-400 mt-1">New Code:</p>
-                <pre className="bg-gray-900 p-2 text-xs rounded overflow-x-auto">{change.newCode}</pre>
-              </li>
-            ))}
-          </ul>
+      <div className="flex w-full">
+        <div className="w-1/2 p-2 bg-gray-700 text-white h-72 overflow-y-scroll mr-2">
+          <h3 className="text-lg font-bold">Console Output:</h3>
+          <ul>{consoleOutput.map((line, index) => <li key={index}>{line}</li>)}</ul>
         </div>
+
+        <iframe id="outputFrame" title="Output" className="w-1/2 h-72 border bg-green-300"></iframe>
       </div>
     </div>
   );
