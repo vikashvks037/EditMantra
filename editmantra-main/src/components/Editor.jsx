@@ -39,6 +39,7 @@ const defaultCode = `<!DOCTYPE html>
 const Editor = ({ roomId }) => {
   const editorRef = useRef(null);
   const [code, setCode] = useState(defaultCode);
+  const isRemoteChange = useRef(false);
 
   // Initialize CodeMirror
   useEffect(() => {
@@ -57,8 +58,10 @@ const Editor = ({ roomId }) => {
 
     editorRef.current.on("change", (instance) => {
       const newCode = instance.getValue();
-      setCode(newCode);
-      socket.emit(ACTIONS.CODE_CHANGE, { roomId, code: newCode });
+      if (!isRemoteChange.current) {
+        setCode(newCode);
+        socket.emit(ACTIONS.CODE_CHANGE, { roomId, code: newCode });
+      }
     });
 
     return () => {
@@ -66,15 +69,17 @@ const Editor = ({ roomId }) => {
     };
   }, []);
 
-  // Join Room and Listen to Changes
+  // Join room and handle code sync
   useEffect(() => {
     socket.emit(ACTIONS.JOIN_ROOM, { roomId });
 
     socket.on(ACTIONS.CODE_CHANGE, ({ code: newCode }) => {
       const currentCode = editorRef.current.getValue();
       if (newCode !== currentCode) {
+        isRemoteChange.current = true;
         editorRef.current.setValue(newCode);
         setCode(newCode);
+        isRemoteChange.current = false;
       }
     });
 
@@ -83,17 +88,16 @@ const Editor = ({ roomId }) => {
     };
   }, [roomId]);
 
-  // View Output
+  // View rendered output
   const handleViewResult = () => {
     const iframe = document.getElementById("outputFrame");
     const doc = iframe.contentDocument || iframe.contentWindow.document;
-
     doc.open();
     doc.write(editorRef.current.getValue());
     doc.close();
   };
 
-  // Download Code as HTML
+  // Download code as HTML
   const handleDownloadCode = () => {
     const blob = new Blob([editorRef.current.getValue()], { type: "text/html" });
     const link = document.createElement("a");
@@ -121,7 +125,10 @@ const Editor = ({ roomId }) => {
         </button>
       </div>
 
-      <textarea id="realtimeEditor" className="w-full h-72 font-mono text-white bg-transparent border-2" />
+      <textarea
+        id="realtimeEditor"
+        className="w-full h-72 font-mono text-white bg-transparent border-2"
+      />
 
       <iframe
         id="outputFrame"
