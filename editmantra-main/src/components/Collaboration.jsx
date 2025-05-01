@@ -101,7 +101,7 @@ const Collaboration = () => {
             className="p-2 border rounded cursor-pointer"
           >
             <option value="python">Python</option>
-            <option value="java">Java</option>
+            <option value="java">......</option>
           </select>
         </div>
 
