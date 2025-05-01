@@ -14,7 +14,7 @@ const ACTIONS = {
   JOIN_ROOM: "join-room",
 };
 
-const socket = io("https://editmantra-backend.onrender.com"); // Replace with your backend's URL
+const socket = io("https://editmantra-backend.onrender.com");
 
 const defaultCode = {
   htmlmixed: `<!DOCTYPE html>
@@ -38,17 +38,15 @@ const defaultCode = {
 
 const Editor = ({ roomId }) => {
   const editorRef = useRef(null);
-  const [language, setLanguage] = useState("htmlmixed");
   const [code, setCode] = useState(defaultCode["htmlmixed"]);
-  const [consoleOutput, setConsoleOutput] = useState([]); // Store console logs
-  const [isLocalChange, setIsLocalChange] = useState(false); // Track local changes
+  const [isLocalChange, setIsLocalChange] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(new Date().toLocaleTimeString());
 
-  // Initialize CodeMirror editor
   useEffect(() => {
     editorRef.current = Codemirror.fromTextArea(
       document.getElementById("realtimeEditor"),
       {
-        mode: language,
+        mode: "htmlmixed",
         theme: "dracula",
         autoCloseTags: true,
         autoCloseBrackets: true,
@@ -62,14 +60,14 @@ const Editor = ({ roomId }) => {
       const newCode = instance.getValue();
       setCode(newCode);
       setIsLocalChange(true);
+      setLastUpdated(new Date().toLocaleTimeString());
     });
 
     return () => {
       editorRef.current?.toTextArea();
     };
-  }, [language]);
+  }, []);
 
-  // Emit code changes to the socket
   useEffect(() => {
     if (isLocalChange) {
       socket.emit(ACTIONS.CODE_CHANGE, { roomId, code });
@@ -77,7 +75,6 @@ const Editor = ({ roomId }) => {
     }
   }, [code, roomId, isLocalChange]);
 
-  // Handle socket updates
   useEffect(() => {
     socket.emit(ACTIONS.JOIN_ROOM, { roomId });
 
@@ -85,6 +82,7 @@ const Editor = ({ roomId }) => {
       if (newCode !== editorRef.current.getValue()) {
         editorRef.current.setValue(newCode);
         setCode(newCode);
+        setLastUpdated(new Date().toLocaleTimeString());
       }
     });
 
@@ -93,7 +91,6 @@ const Editor = ({ roomId }) => {
     };
   }, [roomId]);
 
-  // Auto-update editor content every 3 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       if (editorRef.current && editorRef.current.getValue() !== code) {
@@ -104,37 +101,19 @@ const Editor = ({ roomId }) => {
     return () => clearInterval(interval);
   }, [code]);
 
-  // Handle language change
-  const handleLanguageChange = (e) => {
-    const newLanguage = e.target.value;
-    setLanguage(newLanguage);
-    const newCode = defaultCode[newLanguage];
-    setCode(newCode);
-    if (editorRef.current) {
-      editorRef.current.setOption("mode", newLanguage);
-      editorRef.current.setValue(newCode);
-    }
-  };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLastUpdated(new Date().toLocaleTimeString());
+    }, 5 * 60 * 1000);
 
-  // Clear editor
-  const handleClearScreen = () => {
-    setCode("");
-    if (editorRef.current) {
-      editorRef.current.setValue("");
-    }
-  };
+    return () => clearInterval(interval);
+  }, []);
 
-  // Display merged result
   const handleViewResult = () => {
     const iframe = document.getElementById("outputFrame");
     const doc = iframe.contentDocument || iframe.contentWindow.document;
 
-    const htmlCode =
-      language === "htmlmixed" ? editorRef.current.getValue() : defaultCode.htmlmixed;
-    const cssCode =
-      language === "css" ? editorRef.current.getValue() : defaultCode.css;
-    const jsCode =
-      language === "javascript" ? editorRef.current.getValue() : defaultCode.javascript;
+    const htmlCode = editorRef.current.getValue();
 
     const fullCode = `
       <!DOCTYPE html>
@@ -143,11 +122,12 @@ const Editor = ({ roomId }) => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Preview</title>
-        <style>${cssCode}</style>
+        <style>${defaultCode.css}</style>
       </head>
-      <body>${htmlCode}
+      <body>
+        ${htmlCode}
         <script>
-          try { ${jsCode} } catch (error) {
+          try { ${defaultCode.javascript} } catch (error) {
             console.error("Error in JavaScript:", error);
           }
         </script>
@@ -160,67 +140,55 @@ const Editor = ({ roomId }) => {
     doc.close();
   };
 
-  // Execute JavaScript and log output
-  const handleConsoleOutput = () => {
-    const jsCode = editorRef.current.getValue();
-    const iframe = document.createElement("iframe");
-    document.body.appendChild(iframe);
-    const iframeWindow = iframe.contentWindow;
+  const handleDownloadCode = () => {
+    const htmlCode = editorRef.current.getValue();
 
-    iframeWindow.console.log = (message) => {
-      setConsoleOutput((prev) => [...prev, `> ${message}`]);
-    };
+    const fullCode = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Downloaded Page</title>
+        <style>${defaultCode.css}</style>
+      </head>
+      <body>
+        ${htmlCode}
+        <script>${defaultCode.javascript}<\/script>
+      </body>
+      </html>
+    `;
 
-    try {
-      iframeWindow.eval(jsCode);
-    } catch (error) {
-      setConsoleOutput((prev) => [...prev, `Error: ${error.message}`]);
-    }
-
-    document.body.removeChild(iframe);
+    const blob = new Blob([fullCode], { type: "text/html" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "project.html";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
-
-  // Clear console output
-  const clearConsole = () => setConsoleOutput([]);
 
   return (
     <div className="p-1 shadow-lg flex-col">
-      <div className="flex mb-1 font-bold">
-        <select
-          value={language}
-          onChange={handleLanguageChange}
-          className="p-1 mr-2 border text-center rounded-sm focus:outline-none text-cyan-700 font-bold"
-        >
-          <option value="htmlmixed">HTML</option>
-          <option value="css">CSS</option>
-          <option value="javascript">JavaScript</option>
-        </select>
-
-        <div className="flex space-x-6 ml-96">
+      <div className="flex mb-1 font-bold items-center">
+        <div className="flex space-x-4">
           <button onClick={handleViewResult} className="px-4 py-2 bg-pink-500 text-white rounded-sm hover:bg-pink-700">
             View Result
           </button>
-          <button onClick={handleConsoleOutput} className="px-4 py-2 bg-cyan-600 text-white rounded-sm hover:bg-cyan-800">
-            Console Output
+          <button onClick={handleDownloadCode} className="px-4 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-800">
+            Download Code
           </button>
-          <button onClick={clearConsole} className="px-4 py-2 bg-purple-600 text-white rounded-sm hover:bg-purple-500">
-            Clear Console
-          </button>
-          <button onClick={handleClearScreen} className="px-4 py-2 bg-red-700 text-white rounded-sm hover:bg-red-900">
-            Clear Screen
-          </button>
+        </div>
+
+        <div className="ml-4 px-3 py-2 bg-yellow-100 text-black rounded-md font-mono text-sm shadow-inner">
+          <span className="font-bold">Last Code Update:</span> {lastUpdated}
         </div>
       </div>
 
       <textarea id="realtimeEditor" className="w-full h-72 text-base font-mono text-white bg-transparent border-2 focus:outline-none transition-all"></textarea>
 
-      <div className="flex w-full">
-        <div className="w-1/2 p-2 bg-gray-700 text-white h-72 overflow-y-scroll mr-2">
-          <h3 className="text-lg font-bold">Console Output:</h3>
-          <ul>{consoleOutput.map((line, index) => <li key={index}>{line}</li>)}</ul>
-        </div>
-
-        <iframe id="outputFrame" title="Output" className="w-1/2 h-72 border bg-green-300"></iframe>
+      <div className="flex w-full mt-2">
+        <iframe id="outputFrame" title="Output" className="w-full h-72 border bg-green-300"></iframe>
       </div>
     </div>
   );
